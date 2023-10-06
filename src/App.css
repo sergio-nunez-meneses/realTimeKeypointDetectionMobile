@@ -2,14 +2,19 @@
   width: 100%;
   display: flex;
   flex-direction: column;
+  align-items: center;
+  gap: 3rem;
 }
 
-.ImageContainer{
-  width: 30%;
+.imageContainer{
+  width: 80%;
+  cursor: pointer;
+  display: flex;
+  justify-content: center;
 }
 
-.ImageContainer img{
-  width: 100%;
+.imageContainer img{
+  max-width: 100%;
 }
 
 .key-point {

@@ -8,23 +8,20 @@ import kaamelott from "./assets/kaamelott.jpg";
 import starwars from "./assets/starwars.jpg";
 
 function App() {
-    const [nameImages, setNameImages] = useState(zidane);
-    const initializeFaceDetector = async () => {
-    const vision = await FilesetResolver.forVisionTasks(
-        "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.0/wasm"
-      );
-    const faceDetector = await FaceDetector.createFromOptions(vision, {
-        baseOptions: {
-          modelAssetPath: `https://storage.googleapis.com/mediapipe-models/face_detector/blaze_face_short_range/float16/1/blaze_face_short_range.tflite`,
-          delegate: "GPU",
-        },
-        runningMode: "IMAGE",
-      });
+      const [nameImages, setNameImages] = useState(zidane);
+      const initializeFaceDetector = async () => {
+      const vision = await FilesetResolver.forVisionTasks(
+          "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.0/wasm"
+        );
+      const faceDetector = await FaceDetector.createFromOptions(vision, {
+          baseOptions: {
+            modelAssetPath: `https://storage.googleapis.com/mediapipe-models/face_detector/blaze_face_short_range/float16/1/blaze_face_short_range.tflite`,
+            delegate: "GPU",
+          },
+          runningMode: "IMAGE",
+        });
       const images = document.querySelectorAll(".image");
-      for (const image of images) {
-        const faceDetectorResult = await faceDetector.detect(image);
-        const detections = faceDetectorResult.detections;
-        }
+      
       images.forEach(async (image, index) => {
         const faceDetectorResult = await faceDetector.detect(image);
         const detections = faceDetectorResult.detections;
@@ -37,8 +34,8 @@ function App() {
 
             const boundingBox = document.createElement("div");
             boundingBox.classList = "highlighter";
-            boundingBox.style.left = box.originX + "px";
-            boundingBox.style.top = (box.originY+image.offsetTop) + "px";
+            boundingBox.style.left = box.originX + image.offsetLeft + "px";
+            boundingBox.style.top = box.originY+image.offsetTop + "px";
             boundingBox.style.width = box.width + "px";
             boundingBox.style.height = box.height + "px";
             imageContainer.insertBefore(boundingBox, image);
