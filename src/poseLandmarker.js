@@ -2,10 +2,10 @@ import {
     PoseLandmarker,
     FilesetResolver,
     DrawingUtils
-  } from "https://cdn.skypack.dev/@mediapipe/tasks-vision@0.10.0";
+  } from "https://cdn.skypack.dev/@mediapipe/tasks-vision@latest";
 
   const vision = await FilesetResolver.forVisionTasks(
-    "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.0/wasm"
+    "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@latest/wasm"
   );
   const poseLandmarker = await PoseLandmarker.createFromOptions(vision, {
     baseOptions: {

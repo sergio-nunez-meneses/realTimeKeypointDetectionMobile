@@ -1,22 +1,104 @@
 import faceDetector from "./faceDetector";
-import faceLandmarker from "./faceLandmarker";
+// import faceLandmarker from "./faceLandmarker";
 import poseLandmarker from "./poseLandmarker";
 import handLandmarker from "./handLandmarker";
+import vision from "./vision";
+import { FaceLandmarker, DrawingUtils } from "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@latest";
 import React, { useEffect, useState } from "react";
 import zidane from "./assets/zidane.jpg";
 import kaamelott from "./assets/kaamelott.jpg";
 import starwars from "./assets/starwars.jpg";
 import Webcam from "react-webcam";
 
+let runningMode = "IMAGE";
+
+const faceLandmarker = await FaceLandmarker.createFromOptions(vision, {
+  baseOptions: {
+    modelAssetPath: `https://storage.googleapis.com/mediapipe-models/face_landmarker/face_landmarker/float16/1/face_landmarker.task`,
+    delegate: "GPU"
+  },
+  outputFaceBlendshapes: true,
+  runningMode : runningMode,
+  numFaces: 6
+});
+const imageBlendShapes = document.getElementById("image-blend-shapes");
+
 function App() {
       const [source, setSource] = useState("image");
       const [nameModel, setNameModel] = useState("PoseLandmarker");
-      console.log(handLandmarker);
+      
       
       const initializeFaceLandmarker = ()=>{
+        if(source === "webcam"){
+          runningMode = "VIDEO"
+          console.log(runningMode)
+        }
         const image = document.getElementById("image");
-          const faceLandmarkerResult = faceLandmarker.detect(image);
-          console.log(faceLandmarkerResult);
+        console.log(image.width)
+        const faceLandmarkerResult = faceLandmarker.detect(image);
+        console.log(faceLandmarkerResult);
+        const canvas = document.createElement("canvas");
+        canvas.setAttribute("class", "canvas");
+        if(source === "webcam"){
+          canvas.setAttribute("width", image.videoWidth + "px");
+          canvas.setAttribute("height", image.videoHeight + "px");
+        }else{
+          canvas.setAttribute("width", image.width + "px");
+          canvas.setAttribute("height", image.height + "px");
+        }
+        canvas.style.left = image.offsetLeft+"px";
+        canvas.style.top = image.offsetTop+"px";
+        document.body.appendChild(canvas);
+
+        const ctx = canvas.getContext("2d");
+        const drawingUtils = new DrawingUtils(ctx);
+        for (const landmarks of faceLandmarkerResult.faceLandmarks) {
+          drawingUtils.drawConnectors(
+            landmarks,
+            FaceLandmarker.FACE_LANDMARKS_TESSELATION,
+            { color: "#C0C0C070", lineWidth: 1 }
+          );
+          drawingUtils.drawConnectors(
+            landmarks,
+            FaceLandmarker.FACE_LANDMARKS_RIGHT_EYE,
+            { color: "#FF3030" }
+          );
+          drawingUtils.drawConnectors(
+            landmarks,
+            FaceLandmarker.FACE_LANDMARKS_RIGHT_EYEBROW,
+            { color: "#FF3030" }
+          );
+          drawingUtils.drawConnectors(
+            landmarks,
+            FaceLandmarker.FACE_LANDMARKS_LEFT_EYE,
+            { color: "#30FF30" }
+          );
+          drawingUtils.drawConnectors(
+            landmarks,
+            FaceLandmarker.FACE_LANDMARKS_LEFT_EYEBROW,
+            { color: "#30FF30" }
+          );
+          drawingUtils.drawConnectors(
+            landmarks,
+            FaceLandmarker.FACE_LANDMARKS_FACE_OVAL,
+            { color: "#E0E0E0" }
+          );
+          drawingUtils.drawConnectors(landmarks, FaceLandmarker.FACE_LANDMARKS_LIPS, {
+            color: "#E0E0E0"
+          });
+          drawingUtils.drawConnectors(
+            landmarks,
+            FaceLandmarker.FACE_LANDMARKS_RIGHT_IRIS,
+            { color: "#FF3030" }
+          );
+          drawingUtils.drawConnectors(
+            landmarks,
+            FaceLandmarker.FACE_LANDMARKS_LEFT_IRIS,
+            { color: "#30FF30" }
+          );
+        }
+        drawBlendShapes(imageBlendShapes, faceLandmarkerResult.faceBlendshapes);
+
         }
 
       const initializePoseLandmarker = ()=>{
@@ -92,12 +174,38 @@ function App() {
           if(nameModel === "PoseLandmarker"){
             initializePoseLandmarker();
           }else if (nameModel === "FaceLandmarker"){
+            
             initializeFaceLandmarker();
           }else{
             initializeHandLandmaker();
             // initializeFaceDetector();
           }
           
+        }
+        
+        function drawBlendShapes(el, blendShapes) {
+          el = document.getElementById("el");
+          if (!blendShapes.length) {
+            return;
+          }
+        
+          console.log(blendShapes[0]);
+          
+          let htmlMaker = "";
+          blendShapes[0].categories.map((shape) => {
+            htmlMaker += `
+              <li class="blend-shapes-item">
+                <span class="blend-shapes-label">${
+                  shape.displayName || shape.categoryName
+                }</span>
+                <span class="blend-shapes-value" style="width: calc(${
+                  +shape.score * 100
+                }% - 120px)">${(+shape.score).toFixed(4)}</span>
+              </li>
+            `;
+          });
+        
+          el.innerHTML = htmlMaker;
         }
 
   return (
@@ -125,6 +233,12 @@ function App() {
           <Webcam id="image"/>
         }
 
+        {
+          nameModel==="FaceLandmarker" ? <div className="blend-shapes">
+          <ul className="blend-shapes-list" id="video-blend-shapes"></ul>
+        </div> : <span></span>
+        }
+        <span id="el"></span>
       
     </div>
   );

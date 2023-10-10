@@ -35,3 +35,7 @@
     z-index: 1;
     position: absolute;
   }
+
+.canvas{
+  position: absolute;
+}
