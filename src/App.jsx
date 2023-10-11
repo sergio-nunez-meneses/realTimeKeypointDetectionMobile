@@ -5,9 +5,7 @@ import handLandmarker from "./handLandmarker";
 import vision from "./vision";
 import { FaceLandmarker, DrawingUtils } from "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@latest";
 import React, { useEffect, useState } from "react";
-import zidane from "./assets/zidane.jpg";
 import kaamelott from "./assets/kaamelott.jpg";
-import starwars from "./assets/starwars.jpg";
 import Webcam from "react-webcam";
 
 let runningMode = "IMAGE";
@@ -25,26 +23,39 @@ const imageBlendShapes = document.getElementById("image-blend-shapes");
 const canvas = document.createElement("canvas");
 canvas.id = "render"
 document.body.appendChild(canvas);
-let image;
+let image = document.getElementById("image");
+let lastVideoTime = -1;
+let results = undefined;
 
 function App() {
-      const [source, setSource] = useState("image");
-      const [nameModel, setNameModel] = useState("PoseLandmarker");
+      const [source, setSource] = useState("webcam");
+      const [nameModel, setNameModel] = useState("FaceLandmarker");
       if(source === "webcam"){
         runningMode = "VIDEO"
       }
       
       
       const initializeFaceLandmarker = ()=>{
-        
-        const faceLandmarkerResult = faceLandmarker.detect(image);
+        if(source === "webcam"){
+          faceLandmarker.setOptions({ runningMode: runningMode });
+          let startTimeMs = performance.now();
+          if (lastVideoTime !== image.currentTime) {
+              lastVideoTime = image.currentTime;
+              results = faceLandmarker.detectForVideo(image, startTimeMs);
+  }
+  console.log(image.currentTime)
+
+        }else{
+
+          results = faceLandmarker.detect(image);
+        }
         
         // draw landmarks on canvas
         const ctx = canvas.getContext("2d");
         ctx.clearRect(image.offsetLeft, image.offsetTop, canvas.width, canvas.height);
         const drawingUtils = new DrawingUtils(ctx);
 
-        for (const landmarks of faceLandmarkerResult.faceLandmarks) {
+        for (const landmarks of results.faceLandmarks) {
           drawingUtils.drawConnectors(
             landmarks,
             FaceLandmarker.FACE_LANDMARKS_TESSELATION,
@@ -89,9 +100,11 @@ function App() {
             { color: "#30FF30" }
           );
         }
-        drawBlendShapes(imageBlendShapes, faceLandmarkerResult.faceBlendshapes);
+        drawBlendShapes(imageBlendShapes, results.faceBlendshapes);
+        
 
         }
+
 
       const initializePoseLandmarker = ()=>{
         const poseLandmarkerResult = poseLandmarker.detect(image);
@@ -163,7 +176,7 @@ function App() {
         const handleclick= ()=>{
           image = document.getElementById("image");
           // console.log(faceLandmarkerResult);
-          
+          window.requestAnimationFrame(initializeFaceLandmarker);
           canvas.setAttribute("class", "canvas");
           canvas.style.left = image.offsetLeft+"px";
           canvas.style.top = image.offsetTop+"px";
