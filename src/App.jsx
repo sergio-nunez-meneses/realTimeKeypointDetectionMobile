@@ -1,4 +1,4 @@
-import faceDetector from "./faceDetector";
+// import faceDetector from "./faceDetector";
 // import faceLandmarker from "./faceLandmarker";
 import poseLandmarker from "./poseLandmarker";
 import handLandmarker from "./handLandmarker";
@@ -22,36 +22,28 @@ const faceLandmarker = await FaceLandmarker.createFromOptions(vision, {
   numFaces: 6
 });
 const imageBlendShapes = document.getElementById("image-blend-shapes");
+const canvas = document.createElement("canvas");
+canvas.id = "render"
+document.body.appendChild(canvas);
+let image;
 
 function App() {
       const [source, setSource] = useState("image");
       const [nameModel, setNameModel] = useState("PoseLandmarker");
+      if(source === "webcam"){
+        runningMode = "VIDEO"
+      }
       
       
       const initializeFaceLandmarker = ()=>{
-        if(source === "webcam"){
-          runningMode = "VIDEO"
-          console.log(runningMode)
-        }
-        const image = document.getElementById("image");
-        console.log(image.width)
+        
         const faceLandmarkerResult = faceLandmarker.detect(image);
-        console.log(faceLandmarkerResult);
-        const canvas = document.createElement("canvas");
-        canvas.setAttribute("class", "canvas");
-        if(source === "webcam"){
-          canvas.setAttribute("width", image.videoWidth + "px");
-          canvas.setAttribute("height", image.videoHeight + "px");
-        }else{
-          canvas.setAttribute("width", image.width + "px");
-          canvas.setAttribute("height", image.height + "px");
-        }
-        canvas.style.left = image.offsetLeft+"px";
-        canvas.style.top = image.offsetTop+"px";
-        document.body.appendChild(canvas);
-
+        
+        // draw landmarks on canvas
         const ctx = canvas.getContext("2d");
+        ctx.clearRect(image.offsetLeft, image.offsetTop, canvas.width, canvas.height);
         const drawingUtils = new DrawingUtils(ctx);
+
         for (const landmarks of faceLandmarkerResult.faceLandmarks) {
           drawingUtils.drawConnectors(
             landmarks,
@@ -102,13 +94,11 @@ function App() {
         }
 
       const initializePoseLandmarker = ()=>{
-        const image = document.getElementById("image");
         const poseLandmarkerResult = poseLandmarker.detect(image);
         console.log(poseLandmarkerResult);
       } 
       
-      const initializeHandLandmaker = ()=>{
-        const image = document.getElementById("image");        
+      const initializeHandLandmaker = ()=>{       
         const handLandmarkerResult = handLandmarker.detect(image);
         console.log(handLandmarkerResult);
       }
@@ -153,9 +143,9 @@ function App() {
         const handleNameImagesChange = (event) => {
           setSource(event.target.value);
 
-          if(document.getElementById("data")){
-            document.getElementById("data").remove()
-          }
+          // if(document.getElementById("data")){
+          //   document.getElementById("data").remove()
+          // }
           // const boundingBoxes = document.querySelectorAll(".highlighter");
           // boundingBoxes.forEach((boundingBox)=>{
           //   boundingBox.remove();
@@ -171,6 +161,23 @@ function App() {
         }
 
         const handleclick= ()=>{
+          image = document.getElementById("image");
+          // console.log(faceLandmarkerResult);
+          
+          canvas.setAttribute("class", "canvas");
+          canvas.style.left = image.offsetLeft+"px";
+          canvas.style.top = image.offsetTop+"px";
+
+          if(source === "webcam"){
+            canvas.setAttribute("width", image.videoWidth + "px");
+            canvas.setAttribute("height", image.videoHeight + "px");
+          }else{
+            canvas.setAttribute("width", image.width + "px");
+            canvas.setAttribute("height", image.height + "px");
+          }
+            
+            
+          
           if(nameModel === "PoseLandmarker"){
             initializePoseLandmarker();
           }else if (nameModel === "FaceLandmarker"){
@@ -189,7 +196,7 @@ function App() {
             return;
           }
         
-          console.log(blendShapes[0]);
+          
           
           let htmlMaker = "";
           blendShapes[0].categories.map((shape) => {
@@ -227,9 +234,11 @@ function App() {
       </div>
       
         <button onClick={handleclick}>Start detection</button>
+
         {
           source === "image"?
-          <img id="image" className="image" src={kaamelott} />:
+          <img id="image" className="image" src={kaamelott} />
+          :
           <Webcam id="image"/>
         }
 
