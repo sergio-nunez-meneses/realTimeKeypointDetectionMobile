@@ -2,10 +2,9 @@ import {
     HandLandmarker,
     FilesetResolver
   } from "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@latest";
+  import vision from "./vision";
 
-  const vision = await FilesetResolver.forVisionTasks(
-    "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@latest/wasm"
-  );
+
 
 
   const handLandmarker = await HandLandmarker.createFromOptions(vision, {

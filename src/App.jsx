@@ -1,54 +1,39 @@
 // import faceDetector from "./faceDetector";
-// import faceLandmarker from "./faceLandmarker";
+import faceLandmarker from "./faceLandmarker";
 import poseLandmarker from "./poseLandmarker";
 import handLandmarker from "./handLandmarker";
-import vision from "./vision";
 import { FaceLandmarker, DrawingUtils } from "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@latest";
 import React, { useEffect, useState } from "react";
-import kaamelott from "./assets/kaamelott.jpg";
 import Webcam from "react-webcam";
 
-let runningMode = "IMAGE";
 
-const faceLandmarker = await FaceLandmarker.createFromOptions(vision, {
-  baseOptions: {
-    modelAssetPath: `https://storage.googleapis.com/mediapipe-models/face_landmarker/face_landmarker/float16/1/face_landmarker.task`,
-    delegate: "GPU"
-  },
-  outputFaceBlendshapes: true,
-  runningMode : runningMode,
-  numFaces: 6
-});
+let image = document.getElementById("image");
 const imageBlendShapes = document.getElementById("image-blend-shapes");
 const canvas = document.createElement("canvas");
 canvas.id = "render"
 document.body.appendChild(canvas);
-let image = document.getElementById("image");
 let lastVideoTime = -1;
 let results = undefined;
 
 function App() {
-      const [source, setSource] = useState("webcam");
-      const [nameModel, setNameModel] = useState("FaceLandmarker");
-      if(source === "webcam"){
-        runningMode = "VIDEO"
-      }
-      
-      
-      const initializeFaceLandmarker = ()=>{
-        if(source === "webcam"){
-          faceLandmarker.setOptions({ runningMode: runningMode });
-          let startTimeMs = performance.now();
-          if (lastVideoTime !== image.currentTime) {
-              lastVideoTime = image.currentTime;
-              results = faceLandmarker.detectForVideo(image, startTimeMs);
-  }
-  console.log(image.currentTime)
+  
+  const [nameModel, setNameModel] = useState("Face");
+  
+  const faceDetect = ()=>{
+    
+    canvas.left = image.offsetLeft;
+    canvas.top = image.offsetTop;
+    canvas.width = image.videoWidth;
+    canvas.height = image.videoHeight;
 
-        }else{
-
-          results = faceLandmarker.detect(image);
+        
+        let startTimeMs = performance.now();
+        if (lastVideoTime !== image.currentTime) {
+          lastVideoTime = image.currentTime;
+          results = faceLandmarker.detectForVideo(image, startTimeMs);
         }
+        window.requestAnimationFrame(faceDetect);
+        
         
         // draw landmarks on canvas
         const ctx = canvas.getContext("2d");
@@ -102,16 +87,17 @@ function App() {
         }
         drawBlendShapes(imageBlendShapes, results.faceBlendshapes);
         
+        ctx.clearRect(image.offsetLeft, image.offsetTop, canvas.width, canvas.height);
 
         }
 
 
-      const initializePoseLandmarker = ()=>{
+      const poseDetect = ()=>{
         const poseLandmarkerResult = poseLandmarker.detect(image);
         console.log(poseLandmarkerResult);
       } 
       
-      const initializeHandLandmaker = ()=>{       
+      const handDetect = ()=>{       
         const handLandmarkerResult = handLandmarker.detect(image);
         console.log(handLandmarkerResult);
       }
@@ -153,21 +139,7 @@ function App() {
       
     // };
 
-        const handleNameImagesChange = (event) => {
-          setSource(event.target.value);
-
-          // if(document.getElementById("data")){
-          //   document.getElementById("data").remove()
-          // }
-          // const boundingBoxes = document.querySelectorAll(".highlighter");
-          // boundingBoxes.forEach((boundingBox)=>{
-          //   boundingBox.remove();
-          // })
-          // const keypoints = document.querySelectorAll(".key-point")
-          // keypoints.forEach((keypoint)=>{
-          //   keypoint.remove();
-          // })
-        };
+        
 
         const handleNameModelChange = (event) =>{
           setNameModel(event.target.value);
@@ -176,28 +148,25 @@ function App() {
         const handleclick= ()=>{
           image = document.getElementById("image");
           // console.log(faceLandmarkerResult);
-          window.requestAnimationFrame(initializeFaceLandmarker);
+          
           canvas.setAttribute("class", "canvas");
           canvas.style.left = image.offsetLeft+"px";
           canvas.style.top = image.offsetTop+"px";
 
-          if(source === "webcam"){
+          
             canvas.setAttribute("width", image.videoWidth + "px");
             canvas.setAttribute("height", image.videoHeight + "px");
-          }else{
-            canvas.setAttribute("width", image.width + "px");
-            canvas.setAttribute("height", image.height + "px");
-          }
+          
             
             
           
-          if(nameModel === "PoseLandmarker"){
-            initializePoseLandmarker();
-          }else if (nameModel === "FaceLandmarker"){
+          if(nameModel === "Pose"){
+            poseDetect();
+          }else if (nameModel === "Face"){
             
-            initializeFaceLandmarker();
+            faceDetect();
           }else{
-            initializeHandLandmaker();
+            handDetect();
             // initializeFaceDetector();
           }
           
@@ -230,33 +199,24 @@ function App() {
 
   return (
     <div className="App">
-      <div>
-        <label>Source :</label>
-        <select onChange={handleNameImagesChange} value={source}>
-          <option value={"image"}>Image</option>
-          <option value={"webcam"}>Webcam</option>
-        </select>
-      </div>
+      
       <div>
         <label>Model :</label>
         <select onChange={handleNameModelChange} value={nameModel}>
-          <option value={"PoseLandmarker"}>Pose</option>
-          <option value={"FaceLandmarker"}>Face</option>
-          <option value={"HandLandmarker"}>Hand</option>
+          <option value={"Pose"}>Pose</option>
+          <option value={"Face"}>Face</option>
+          <option value={"Hand"}>Hand</option>
         </select>
       </div>
       
         <button onClick={handleclick}>Start detection</button>
 
-        {
-          source === "image"?
-          <img id="image" className="image" src={kaamelott} />
-          :
+        
           <Webcam id="image"/>
-        }
+        
 
         {
-          nameModel==="FaceLandmarker" ? <div className="blend-shapes">
+          nameModel==="Face" ? <div className="blend-shapes">
           <ul className="blend-shapes-list" id="video-blend-shapes"></ul>
         </div> : <span></span>
         }
