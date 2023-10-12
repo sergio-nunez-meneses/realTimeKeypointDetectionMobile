@@ -16,11 +16,21 @@ let lastVideoTime = -1;
 let results = undefined;
 
 function App() {
-  
+  const [isDetecting, setIsDetecting] = useState(0);
   const [nameModel, setNameModel] = useState("Face");
   
   const faceDetect = ()=>{
-    
+    const ctx = canvas.getContext("2d");
+    if(isDetecting===0){
+      setIsDetecting(1);
+      image.classList.remove("hidden");
+      canvas.classList.remove("hidden");
+    }else{
+      setIsDetecting(0);
+      image.classList.add("hidden");
+      canvas.classList.add("hidden");
+      ctx.clearRect(image.offsetLeft, image.offsetTop, canvas.width, canvas.height);
+    }
     canvas.left = image.offsetLeft;
     canvas.top = image.offsetTop;
     canvas.width = image.videoWidth;
@@ -36,7 +46,6 @@ function App() {
         
         
         // draw landmarks on canvas
-        const ctx = canvas.getContext("2d");
         ctx.clearRect(image.offsetLeft, image.offsetTop, canvas.width, canvas.height);
         const drawingUtils = new DrawingUtils(ctx);
 
@@ -100,65 +109,23 @@ function App() {
       const handDetect = ()=>{       
         const handLandmarkerResult = handLandmarker.detect(image);
         console.log(handLandmarkerResult);
-      }
+        }
         
-    //     const initializeFaceDetector = async () => {
-    //       const image = document.getElementById("image");   
-      
-    //       const faceDetectorResult = await faceDetector.detect(image);
-    //       const detections = faceDetectorResult.detections;
-    //       // test terminé, ligne suivante test supplémentaire
-    //       if (detections.length > 0) {
-    //         const detectionData = document.createElement("div");
-    //         detectionData.id = "data";
-    //         document.body.appendChild(detectionData);
-    //         detections.forEach((detection) => {
-    //           const box = detection.boundingBox;
-    //           const keypoints = detection.keypoints;
-    //           const imageContainer = image.parentNode;
-
-    //           const boundingBox = document.createElement("div");
-    //           boundingBox.classList = "highlighter";
-    //           boundingBox.style.left = box.originX + image.offsetLeft + "px";
-    //           boundingBox.style.top = box.originY+image.offsetTop + "px";
-    //           boundingBox.style.width = box.width + "px";
-    //           boundingBox.style.height = box.height + "px";
-    //           // imageContainer.insertBefore(boundingBox, image);
-    //           detectionData.appendChild(boundingBox);
-
-    //           keypoints.forEach((keypoint) => {
-    //             const keypointElement = document.createElement("div");
-    //             keypointElement.className = "key-point";
-    //             keypointElement.style.left = (keypoint.x * image.width) + image.offsetLeft - 3 + "px";
-    //             keypointElement.style.top = (keypoint.y * image.height) + image.offsetTop - 3 + "px";
-    //             keypointElement.style.width = "3px";
-    //             detectionData.appendChild(keypointElement);
-    //           });
-    //         });
-    //     }
-      
-    // };
-
-        
-
         const handleNameModelChange = (event) =>{
           setNameModel(event.target.value);
         }
 
         const handleclick= ()=>{
           image = document.getElementById("image");
-          // console.log(faceLandmarkerResult);
+
+          
           
           canvas.setAttribute("class", "canvas");
           canvas.style.left = image.offsetLeft+"px";
           canvas.style.top = image.offsetTop+"px";
-
+          canvas.setAttribute("width", image.videoWidth + "px");
+          canvas.setAttribute("height", image.videoHeight + "px");
           
-            canvas.setAttribute("width", image.videoWidth + "px");
-            canvas.setAttribute("height", image.videoHeight + "px");
-          
-            
-            
           
           if(nameModel === "Pose"){
             poseDetect();
@@ -169,6 +136,10 @@ function App() {
             handDetect();
             // initializeFaceDetector();
           }
+          
+        }
+
+        const stopDetection = ()=>{
           
         }
         
@@ -208,11 +179,14 @@ function App() {
           <option value={"Hand"}>Hand</option>
         </select>
       </div>
-      
-        <button onClick={handleclick}>Start detection</button>
+      {
+        isDetecting === 0 ?
+        <button onClick={handleclick}>Start detection</button> :
+        <button onClick={handleclick}>Stop detection</button>
+      }
 
         
-          <Webcam id="image"/>
+          <Webcam id="image"className="hidden"/>
         
 
         {
