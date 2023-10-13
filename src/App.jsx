@@ -2,158 +2,175 @@
 import faceLandmarker from "./faceLandmarker";
 import poseLandmarker from "./poseLandmarker";
 import handLandmarker from "./handLandmarker";
-import { FaceLandmarker, DrawingUtils } from "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@latest";
-import React, { useEffect, useState } from "react";
+import {
+  FaceLandmarker,
+  DrawingUtils,
+} from "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@latest";
+import React, { useState } from "react";
 import Webcam from "react-webcam";
 
-
+//to do: problem with html tags on return
 let image = document.getElementById("image");
 const imageBlendShapes = document.getElementById("image-blend-shapes");
 const canvas = document.createElement("canvas");
-canvas.id = "render"
-document.body.appendChild(canvas);
+canvas.id = "render";
+const displayTime = document.createElement("p");
+displayTime.id = "time";
+document.body.appendChild(canvas, displayTime);
+
 let lastVideoTime = -1;
 let results = undefined;
 
 function App() {
   const [isDetecting, setIsDetecting] = useState(0);
   const [nameModel, setNameModel] = useState("Face");
-  
-  const faceDetect = ()=>{
+
+  const faceDetect = () => {
     const ctx = canvas.getContext("2d");
-    if(isDetecting===0){
+    if (isDetecting === 0) {
       setIsDetecting(1);
       image.classList.remove("hidden");
       canvas.classList.remove("hidden");
-    }else{
+    } else {
       setIsDetecting(0);
       image.classList.add("hidden");
       canvas.classList.add("hidden");
-      ctx.clearRect(image.offsetLeft, image.offsetTop, canvas.width, canvas.height);
+      ctx.clearRect(
+        image.offsetLeft,
+        image.offsetTop,
+        canvas.width,
+        canvas.height
+      );
     }
     canvas.left = image.offsetLeft;
     canvas.top = image.offsetTop;
     canvas.width = image.videoWidth;
     canvas.height = image.videoHeight;
 
-        
-        let startTimeMs = performance.now();
-        if (lastVideoTime !== image.currentTime) {
-          lastVideoTime = image.currentTime;
-          results = faceLandmarker.detectForVideo(image, startTimeMs);
-        }
-        window.requestAnimationFrame(faceDetect);
-        
-        
-        // draw landmarks on canvas
-        ctx.clearRect(image.offsetLeft, image.offsetTop, canvas.width, canvas.height);
-        const drawingUtils = new DrawingUtils(ctx);
+    let startTimeMs = performance.now();
+    // For debug
+    displayTime.innerHTML = `
+    startTimeMs: ${startTimeMs.toFixed()},
+    currentTime: ${image.currentTime.toFixed()};
+    lastVideoTime: ${lastVideoTime.toFixed()};
+    `;
+    //
+    if (lastVideoTime !== image.currentTime) {
+      results = faceLandmarker.detectForVideo(image, startTimeMs);
+      lastVideoTime = image.currentTime;
+    }
+    window.requestAnimationFrame(faceDetect);
 
-        for (const landmarks of results.faceLandmarks) {
-          drawingUtils.drawConnectors(
-            landmarks,
-            FaceLandmarker.FACE_LANDMARKS_TESSELATION,
-            { color: "#C0C0C070", lineWidth: 1 }
-          );
-          drawingUtils.drawConnectors(
-            landmarks,
-            FaceLandmarker.FACE_LANDMARKS_RIGHT_EYE,
-            { color: "#FF3030" }
-          );
-          drawingUtils.drawConnectors(
-            landmarks,
-            FaceLandmarker.FACE_LANDMARKS_RIGHT_EYEBROW,
-            { color: "#FF3030" }
-          );
-          drawingUtils.drawConnectors(
-            landmarks,
-            FaceLandmarker.FACE_LANDMARKS_LEFT_EYE,
-            { color: "#30FF30" }
-          );
-          drawingUtils.drawConnectors(
-            landmarks,
-            FaceLandmarker.FACE_LANDMARKS_LEFT_EYEBROW,
-            { color: "#30FF30" }
-          );
-          drawingUtils.drawConnectors(
-            landmarks,
-            FaceLandmarker.FACE_LANDMARKS_FACE_OVAL,
-            { color: "#E0E0E0" }
-          );
-          drawingUtils.drawConnectors(landmarks, FaceLandmarker.FACE_LANDMARKS_LIPS, {
-            color: "#E0E0E0"
-          });
-          drawingUtils.drawConnectors(
-            landmarks,
-            FaceLandmarker.FACE_LANDMARKS_RIGHT_IRIS,
-            { color: "#FF3030" }
-          );
-          drawingUtils.drawConnectors(
-            landmarks,
-            FaceLandmarker.FACE_LANDMARKS_LEFT_IRIS,
-            { color: "#30FF30" }
-          );
-        }
-        drawBlendShapes(imageBlendShapes, results.faceBlendshapes);
-        
-        ctx.clearRect(image.offsetLeft, image.offsetTop, canvas.width, canvas.height);
+    // draw landmarks on canvas
+    ctx.clearRect(
+      image.offsetLeft,
+      image.offsetTop,
+      canvas.width,
+      canvas.height
+    );
+    const drawingUtils = new DrawingUtils(ctx);
 
+    for (const landmarks of results.faceLandmarks) {
+      drawingUtils.drawConnectors(
+        landmarks,
+        FaceLandmarker.FACE_LANDMARKS_TESSELATION,
+        { color: "#C0C0C070", lineWidth: 1 }
+      );
+      drawingUtils.drawConnectors(
+        landmarks,
+        FaceLandmarker.FACE_LANDMARKS_RIGHT_EYE,
+        { color: "#FF3030" }
+      );
+      drawingUtils.drawConnectors(
+        landmarks,
+        FaceLandmarker.FACE_LANDMARKS_RIGHT_EYEBROW,
+        { color: "#FF3030" }
+      );
+      drawingUtils.drawConnectors(
+        landmarks,
+        FaceLandmarker.FACE_LANDMARKS_LEFT_EYE,
+        { color: "#30FF30" }
+      );
+      drawingUtils.drawConnectors(
+        landmarks,
+        FaceLandmarker.FACE_LANDMARKS_LEFT_EYEBROW,
+        { color: "#30FF30" }
+      );
+      drawingUtils.drawConnectors(
+        landmarks,
+        FaceLandmarker.FACE_LANDMARKS_FACE_OVAL,
+        { color: "#E0E0E0" }
+      );
+      drawingUtils.drawConnectors(
+        landmarks,
+        FaceLandmarker.FACE_LANDMARKS_LIPS,
+        {
+          color: "#E0E0E0",
         }
+      );
+      drawingUtils.drawConnectors(
+        landmarks,
+        FaceLandmarker.FACE_LANDMARKS_RIGHT_IRIS,
+        { color: "#FF3030" }
+      );
+      drawingUtils.drawConnectors(
+        landmarks,
+        FaceLandmarker.FACE_LANDMARKS_LEFT_IRIS,
+        { color: "#30FF30" }
+      );
+    }
+    drawBlendShapes(imageBlendShapes, results.faceBlendshapes);
 
+    ctx.clearRect(
+      image.offsetLeft,
+      image.offsetTop,
+      canvas.width,
+      canvas.height
+    );
+  };
 
-      const poseDetect = ()=>{
-        const poseLandmarkerResult = poseLandmarker.detect(image);
-        console.log(poseLandmarkerResult);
-      } 
-      
-      const handDetect = ()=>{       
-        const handLandmarkerResult = handLandmarker.detect(image);
-        console.log(handLandmarkerResult);
-        }
-        
-        const handleNameModelChange = (event) =>{
-          setNameModel(event.target.value);
-        }
+  const poseDetect = () => {
+    const poseLandmarkerResult = poseLandmarker.detect(image);
+    console.log(poseLandmarkerResult);
+  };
 
-        const handleclick= ()=>{
-          image = document.getElementById("image");
+  const handDetect = () => {
+    const handLandmarkerResult = handLandmarker.detect(image);
+    console.log(handLandmarkerResult);
+  };
 
-          
-          
-          canvas.setAttribute("class", "canvas");
-          canvas.style.left = image.offsetLeft+"px";
-          canvas.style.top = image.offsetTop+"px";
-          canvas.setAttribute("width", image.videoWidth + "px");
-          canvas.setAttribute("height", image.videoHeight + "px");
-          
-          
-          if(nameModel === "Pose"){
-            poseDetect();
-          }else if (nameModel === "Face"){
-            
-            faceDetect();
-          }else{
-            handDetect();
-            // initializeFaceDetector();
-          }
-          
-        }
+  const handleNameModelChange = (event) => {
+    setNameModel(event.target.value);
+  };
 
-        const stopDetection = ()=>{
-          
-        }
-        
-        function drawBlendShapes(el, blendShapes) {
-          el = document.getElementById("el");
-          if (!blendShapes.length) {
-            return;
-          }
-        
-          
-          
-          let htmlMaker = "";
-          blendShapes[0].categories.map((shape) => {
-            htmlMaker += `
+  const handleclick = () => {
+    image = document.getElementById("image");
+
+    canvas.setAttribute("class", "canvas");
+    canvas.style.left = image.offsetLeft + "px";
+    canvas.style.top = image.offsetTop + "px";
+    canvas.setAttribute("width", image.videoWidth + "px");
+    canvas.setAttribute("height", image.videoHeight + "px");
+
+    if (nameModel === "Pose") {
+      poseDetect();
+    } else if (nameModel === "Face") {
+      faceDetect();
+    } else {
+      handDetect();
+      // initializeFaceDetector();
+    }
+  };
+
+  function drawBlendShapes(el, blendShapes) {
+    el = document.getElementById("el");
+    if (!blendShapes.length) {
+      return;
+    }
+
+    let htmlMaker = "";
+    blendShapes[0].categories.map((shape) => {
+      htmlMaker += `
               <li class="blend-shapes-item">
                 <span class="blend-shapes-label">${
                   shape.displayName || shape.categoryName
@@ -163,14 +180,16 @@ function App() {
                 }% - 120px)">${(+shape.score).toFixed(4)}</span>
               </li>
             `;
-          });
-        
-          el.innerHTML = htmlMaker;
-        }
+    });
+
+    el.innerHTML = htmlMaker;
+  }
+  function handleCameraStart(stream) {
+    console.log("handleCameraStart");
+  }
 
   return (
     <div className="App">
-      
       <div>
         <label>Model :</label>
         <select onChange={handleNameModelChange} value={nameModel}>
@@ -179,23 +198,22 @@ function App() {
           <option value={"Hand"}>Hand</option>
         </select>
       </div>
-      {
-        isDetecting === 0 ?
-        <button onClick={handleclick}>Start detection</button> :
+      {isDetecting === 0 ? (
+        <button onClick={handleclick}>Start detection</button>
+      ) : (
         <button onClick={handleclick}>Stop detection</button>
-      }
+      )}
 
-        
-          <Webcam id="image"className="hidden"/>
-        
+      <Webcam id="image" className="hidden" />
 
-        {
-          nameModel==="Face" ? <div className="blend-shapes">
+      {nameModel === "Face" ? (
+        <div className="blend-shapes">
           <ul className="blend-shapes-list" id="video-blend-shapes"></ul>
-        </div> : <span></span>
-        }
-        <span id="el"></span>
-      
+        </div>
+      ) : (
+        <span></span>
+      )}
+      <span id="el"></span>
     </div>
   );
 }
