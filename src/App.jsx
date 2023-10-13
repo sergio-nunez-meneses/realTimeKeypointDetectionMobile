@@ -19,8 +19,8 @@ canvas.id = "render";
 displayTime.id = "time";
 document.body.appendChild(canvas);
 document.body.appendChild(displayTime);
-
 const ctx = canvas.getContext("2d");
+
 let lastVideoTime = -1;
 let results = undefined;
 let animation;
@@ -51,6 +51,10 @@ function App() {
   };
 
   const faceDetect = () => {
+    canvas.left = image.offsetLeft;
+    canvas.top = image.offsetTop;
+    canvas.width = image.videoWidth;
+    canvas.height = image.videoHeight;
     // Detect
     let startTimeMs = performance.now();
 
@@ -65,10 +69,9 @@ function App() {
       results = faceLandmarker.detectForVideo(image, startTimeMs);
       lastVideoTime = image.currentTime;
     }
+    ctx.clearRect(image.offsetLeft, image.offsetTop, canvas.width, canvas.height);
 
     // Draw landmarks on canvas
-
-    animation = window.requestAnimationFrame(faceDetect);
 
     const drawingUtils = new DrawingUtils(ctx);
 
@@ -129,6 +132,7 @@ function App() {
       canvas.width,
       canvas.height
     );
+    animation = window.requestAnimationFrame(faceDetect);
   };
 
   const stopDetection = () => {
@@ -141,8 +145,7 @@ function App() {
       canvas.width,
       canvas.height
     );
-
-    // canvas.classList.add("hidden");
+    canvas.classList.add("hidden");
   };
 
   const poseDetect = () => {
@@ -180,9 +183,6 @@ function App() {
     });
 
     el.innerHTML = htmlMaker;
-  }
-  function handleCameraStart(stream) {
-    console.log("handleCameraStart");
   }
 
   return (
