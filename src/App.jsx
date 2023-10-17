@@ -1,29 +1,23 @@
-// import faceDetector from "./faceDetector";
 import faceLandmarker from "./faceLandmarker";
 import poseLandmarker from "./poseLandmarker";
 import handLandmarker from "./handLandmarker";
-import {
-  FaceLandmarker,
-  DrawingUtils,
-} from "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@latest";
+import { FaceLandmarker, DrawingUtils } from "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@latest";
 import React, { useState } from "react";
 import Webcam from "react-webcam";
 
-let image;
 const imageBlendShapes = document.getElementById("image-blend-shapes");
 
-//to do: problem with html tags on return
+// TODO: problem with html tags on return
 const canvas = document.createElement("canvas");
 const displayTime = document.createElement("p");
 canvas.id = "render";
 displayTime.id = "time";
-document.body.appendChild(canvas);
-document.body.appendChild(displayTime);
+document.body.append(canvas, displayTime);
 const ctx = canvas.getContext("2d");
 
 let lastVideoTime = -1;
 let results = undefined;
-let animation;
+let animation, image;
 
 function App() {
   const [isDetecting, setIsDetecting] = useState(0);
@@ -46,15 +40,10 @@ function App() {
       faceDetect();
     } else {
       handDetect();
-      // initializeFaceDetector();
     }
   };
 
   const faceDetect = () => {
-    canvas.left = image.offsetLeft;
-    canvas.top = image.offsetTop;
-    canvas.width = image.videoWidth;
-    canvas.height = image.videoHeight;
     // Detect
     let startTimeMs = performance.now();
 
@@ -69,7 +58,7 @@ function App() {
       results = faceLandmarker.detectForVideo(image, startTimeMs);
       lastVideoTime = image.currentTime;
     }
-    ctx.clearRect(image.offsetLeft, image.offsetTop, canvas.width, canvas.height);
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
 
     // Draw landmarks on canvas
 
@@ -126,12 +115,7 @@ function App() {
     }
     drawBlendShapes(imageBlendShapes, results.faceBlendshapes);
 
-    ctx.clearRect(
-      image.offsetLeft,
-      image.offsetHeight,
-      canvas.width,
-      canvas.height
-    );
+    
     animation = window.requestAnimationFrame(faceDetect);
   };
 
@@ -139,12 +123,7 @@ function App() {
     cancelAnimationFrame(animation);
     setIsDetecting(0);
     image.classList.add("hidden");
-    ctx.clearRect(
-      image.offsetLeft,
-      image.offsetHeight,
-      canvas.width,
-      canvas.height
-    );
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
     canvas.classList.add("hidden");
   };
 

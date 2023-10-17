@@ -1,70 +1,56 @@
-# Getting Started with Create React App
+README
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+Acknowledgment
 
-## Available Scripts
+This application is built upon the work of Sergio Nunez Meneses, who created a similar real-time keypoint detection application in Python. You can find Sergio Nunez Meneses' Python application on GitHub: https://github.com/sergio-nunez-meneses/realTimeKeypointDetectionMobile. We extend our gratitude @sergio-nunez-meneses for inspiring this project. The idea here was to create a mobile version of his work, using JavaScript. This is still a work in progress.
 
-In the project directory, you can run:
 
-### `npm start`
+Overview
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+This React application provides a user interface to perform real-time landmark detection using MediaPipe. It allows you to choose between three models for landmark detection: Pose, Face, and Hand. The application displays the detected landmarks on a video stream from your webcam.
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+Installation
 
-### `npm test`
+Before running the application, make sure you have Node.js and npm installed on your system. Follow these steps to set up and run the application:
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+    1.Clone the repository to your local machine.
 
-### `npm run build`
+    2.Navigate to the project directory in your terminal.
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+    3.Install the required dependencies by running the following command:
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+bash
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+npm install
 
-### `npm run eject`
+4.Start the application with the following command:
 
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
+bash
 
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+    npm start
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
+    5.Open a web browser and visit http://localhost:3000 to access the application.
 
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
+Usage
 
-## Learn More
+    1.Select the model you want to use for landmark detection (Pose, Face, or Hand) from the dropdown menu.
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+    2.Click the "Start detection" button to begin the landmark detection on the live video stream from your webcam.
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+    3.The detected landmarks will be displayed on the video stream in real-time.
 
-### Code Splitting
+    4.If you want to stop the detection, click the "Stop detection" button.
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
+Contributions
 
-### Analyzing the Bundle Size
+Contributions to this project are welcome. If you'd like to improve or extend the functionality of this application, please consider submitting a pull request.
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
+Author
 
-### Making a Progressive Web App
+This project was created by @WhidanB with the help and under the supervision of @sergio-nunez-meneses.
+Acknowledgments
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
+    MediaPipe: The project leverages the MediaPipe library for landmark detection.
 
-### Advanced Configuration
+    React: The user interface is built using the React library.
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
-
-### Deployment
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
-
-### `npm run build` fails to minify
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
