@@ -5,7 +5,7 @@ import { FaceLandmarker, DrawingUtils } from "https://cdn.jsdelivr.net/npm/@medi
 import React, { useState } from "react";
 import Webcam from "react-webcam";
 
-const imageBlendShapes = document.getElementById("image-blend-shapes");
+const videoBlendShapes = document.getElementById("video-blend-shapes");
 
 // TODO: problem with html tags on return
 const canvas = document.createElement("canvas");
@@ -17,21 +17,20 @@ const ctx = canvas.getContext("2d");
 
 let lastVideoTime = -1;
 let results = undefined;
-let animation, image;
+let animation, video;
 
 function App() {
   const [isDetecting, setIsDetecting] = useState(0);
   const [nameModel, setNameModel] = useState("Face");
 
-  const handleclick = () => {
+  const startDetection = () => {
     setIsDetecting(1);
-    image = document.getElementById("image");
-    image.classList.remove("hidden");
+    video = document.getElementById("video");
     canvas.setAttribute("class", "canvas");
-    canvas.style.left = image.offsetLeft + "px";
-    canvas.style.top = image.offsetTop + "px";
-    canvas.setAttribute("width", image.videoWidth + "px");
-    canvas.setAttribute("height", image.videoHeight + "px");
+    canvas.style.left = video.offsetLeft + "px";
+    canvas.style.top = video.offsetTop + "px";
+    canvas.setAttribute("width", video.videoWidth + "px");
+    canvas.setAttribute("height", video.videoHeight + "px");
     canvas.classList.remove("hidden");
 
     if (nameModel === "Pose") {
@@ -42,7 +41,7 @@ function App() {
       handDetect();
     }
   };
-
+console.log(FaceLandmarker)
   const faceDetect = () => {
     // Detect
     let startTimeMs = performance.now();
@@ -50,13 +49,13 @@ function App() {
     // For debug
     displayTime.innerHTML = `
     startTimeMs: ${startTimeMs.toFixed()},
-    currentTime: ${image.currentTime.toFixed()};
+    currentTime: ${video.currentTime.toFixed()};
     lastVideoTime: ${lastVideoTime.toFixed()};
     `;
 
-    if (lastVideoTime !== image.currentTime) {
-      results = faceLandmarker.detectForVideo(image, startTimeMs);
-      lastVideoTime = image.currentTime;
+    if (lastVideoTime !== video.currentTime) {
+      results = faceLandmarker.detectForVideo(video, startTimeMs);
+      lastVideoTime = video.currentTime;
     }
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
@@ -98,9 +97,7 @@ function App() {
       drawingUtils.drawConnectors(
         landmarks,
         FaceLandmarker.FACE_LANDMARKS_LIPS,
-        {
-          color: "#E0E0E0",
-        }
+        { color: "#E0E0E0" }
       );
       drawingUtils.drawConnectors(
         landmarks,
@@ -113,7 +110,7 @@ function App() {
         { color: "#30FF30" }
       );
     }
-    drawBlendShapes(imageBlendShapes, results.faceBlendshapes);
+    drawBlendShapes(videoBlendShapes, results.faceBlendshapes);
 
     
     animation = window.requestAnimationFrame(faceDetect);
@@ -122,18 +119,17 @@ function App() {
   const stopDetection = () => {
     cancelAnimationFrame(animation);
     setIsDetecting(0);
-    image.classList.add("hidden");
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     canvas.classList.add("hidden");
   };
 
   const poseDetect = () => {
-    const poseLandmarkerResult = poseLandmarker.detect(image);
+    const poseLandmarkerResult = poseLandmarker.detect(video);
     console.log(poseLandmarkerResult);
   };
 
   const handDetect = () => {
-    const handLandmarkerResult = handLandmarker.detect(image);
+    const handLandmarkerResult = handLandmarker.detect(video);
     console.log(handLandmarkerResult);
   };
 
@@ -175,12 +171,12 @@ function App() {
         </select>
       </div>
       {isDetecting === 0 ? (
-        <button onClick={handleclick}>Start detection</button>
+        <button onClick={startDetection}>Start detection</button>
       ) : (
         <button onClick={stopDetection}>Stop detection</button>
       )}
 
-      <Webcam id="image" className="hidden" />
+      <Webcam id="video" />
 
       {nameModel === "Face" ? (
         <div className="blend-shapes">
