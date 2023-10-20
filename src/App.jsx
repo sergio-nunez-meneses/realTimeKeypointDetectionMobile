@@ -1,36 +1,57 @@
 import faceLandmarker from "./faceLandmarker";
 import poseLandmarker from "./poseLandmarker";
 import handLandmarker from "./handLandmarker";
-import { FaceLandmarker, DrawingUtils } from "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@latest";
-import React, { useState } from "react";
+import {
+  FaceLandmarker,
+  DrawingUtils,
+} from "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@latest";
+import React, { useEffect, useRef, useState } from "react";
 import Webcam from "react-webcam";
 
 const videoBlendShapes = document.getElementById("video-blend-shapes");
 
+
 // TODO: problem with html tags on return
-const canvas = document.createElement("canvas");
+
 const displayTime = document.createElement("p");
-canvas.id = "render";
+
 displayTime.id = "time";
-document.body.append(canvas, displayTime);
-const ctx = canvas.getContext("2d");
+document.body.append(displayTime);
 
 let lastVideoTime = -1;
 let results = undefined;
-let animation, video;
+let animation, video, canvas, ctx;
+
+//OSC
+const {Client} = require("osc");
+
+const client = new Client("127.0.0.1", 8000);
+//
 
 function App() {
   const [isDetecting, setIsDetecting] = useState(0);
   const [nameModel, setNameModel] = useState("Face");
+  const canvasRef = useRef(null);
+  const videoRef = useRef(null);
+
+  useEffect(() => {
+    // La fonction sera exécutée après le rendu du composant
+    if (canvasRef.current && videoRef.current) {
+      canvas = canvasRef.current;
+      ctx = canvas.getContext("2d");
+
+      video = document.getElementById("video");
+      video.addEventListener("loadeddata", () => {
+        canvas.setAttribute("width", video.videoWidth + "px");
+        canvas.setAttribute("height", video.videoHeight + "px");
+        canvas.style.left = video.offsetLeft + "px";
+        canvas.style.top = video.offsetTop + "px";
+      });
+    }
+  }, []);
 
   const startDetection = () => {
     setIsDetecting(1);
-    video = document.getElementById("video");
-    canvas.setAttribute("class", "canvas");
-    canvas.style.left = video.offsetLeft + "px";
-    canvas.style.top = video.offsetTop + "px";
-    canvas.setAttribute("width", video.videoWidth + "px");
-    canvas.setAttribute("height", video.videoHeight + "px");
     canvas.classList.remove("hidden");
 
     if (nameModel === "Pose") {
@@ -41,7 +62,7 @@ function App() {
       handDetect();
     }
   };
-console.log(FaceLandmarker)
+  console.log(FaceLandmarker);
   const faceDetect = () => {
     // Detect
     let startTimeMs = performance.now();
@@ -112,7 +133,6 @@ console.log(FaceLandmarker)
     }
     drawBlendShapes(videoBlendShapes, results.faceBlendshapes);
 
-    
     animation = window.requestAnimationFrame(faceDetect);
   };
 
@@ -176,7 +196,8 @@ console.log(FaceLandmarker)
         <button onClick={stopDetection}>Stop detection</button>
       )}
 
-      <Webcam id="video" />
+      <Webcam id="video" ref={videoRef} />
+      <canvas ref={canvasRef} className="hidden canvas" id="render" />
 
       {nameModel === "Face" ? (
         <div className="blend-shapes">
