@@ -10,7 +10,6 @@ import Webcam from "react-webcam";
 
 const videoBlendShapes = document.getElementById("video-blend-shapes");
 
-
 // TODO: problem with html tags on return
 
 const displayTime = document.createElement("p");
@@ -23,9 +22,9 @@ let results = undefined;
 let animation, video, canvas, ctx;
 
 //OSC
-const {Client} = require("osc");
+// const {Client} = require("osc");
 
-const client = new Client("127.0.0.1", 8000);
+// const client = new Client("127.0.0.1", 8000);
 //
 
 function App() {
@@ -62,7 +61,6 @@ function App() {
       handDetect();
     }
   };
-  console.log(FaceLandmarker);
   const faceDetect = () => {
     // Detect
     let startTimeMs = performance.now();

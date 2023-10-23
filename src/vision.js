@@ -1,4 +1,4 @@
-import {FilesetResolver, DrawingUtils} from "https://cdn.skypack.dev/@mediapipe/tasks-vision@latest";
+import {FilesetResolver} from "https://cdn.skypack.dev/@mediapipe/tasks-vision@latest";
 
 
 const vision = await FilesetResolver.forVisionTasks(
