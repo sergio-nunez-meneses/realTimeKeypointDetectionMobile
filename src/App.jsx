@@ -8,15 +8,17 @@ import { // TODO: FaceLandmarker should also be imported from ./faceLandmarker
 import React, {useEffect, useState} from "react";
 import Webcam from "react-webcam";
 
-const videoBlendShapes = document.getElementById("video-blend-shapes");
-let video, canvas, ctx, animation;
+let video, canvas, ctx;
+let animation;
+let videoBlendShapes;
 
 function App() {
 	const [isDetecting, setIsDetecting] = useState(0);
 	const [nameModel, setNameModel]     = useState("Face");
 
 	useEffect(() => {
-		video = document.getElementById("video");
+		videoBlendShapes = document.getElementById("video-blend-shapes");
+		video            = document.getElementById("video");
 		video.addEventListener("loadeddata", () => {
 			canvas            = document.getElementById("render");
 			ctx               = canvas.getContext("2d");
@@ -42,7 +44,8 @@ function App() {
 
 		canvas.classList.remove("hidden");
 	};
-	const faceDetect     = () => {
+
+	const faceDetect = () => {
 		let startTimeMs   = performance.now();
 		let lastVideoTime = -1;
 		let results;
@@ -131,20 +134,18 @@ function App() {
 	};
 
 	function drawBlendShapes(el, blendShapes) {
-		el = document.getElementById("el");
-		if (!blendShapes.length) {
+		if (blendShapes.length === 0) {
 			return;
 		}
 
 		let htmlMaker = "";
 		blendShapes[0].categories.map((shape) => {
 			htmlMaker += `
-        <li class="blend-shapes-item">
-          <span class="blend-shapes-label">${shape.displayName || shape.categoryName}</span>
-          <span class="blend-shapes-value" style="width: calc(${+shape.score * 100}% - 120px)">
-						${(+shape.score).toFixed(4)}</span>
-        </li>
-      `;
+						<li class="blend-shapes-item">
+							<span class="blend-shapes-label">${shape.displayName || shape.categoryName}</span>
+							<span class="blend-shapes-value" style="width: calc(${+shape.score * 100}% - 120px)">
+							${(+shape.score).toFixed(4)}</span>
+						</li>`;
 		});
 		el.innerHTML = htmlMaker;
 	}
@@ -173,7 +174,6 @@ function App() {
 				) : (
 						<span></span>
 				)}
-				<span id="el"></span>
 			</div>
 	);
 }
