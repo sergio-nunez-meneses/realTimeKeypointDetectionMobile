@@ -7,6 +7,7 @@ import {
 } from "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@latest";
 import React, { useEffect, useRef, useState } from "react";
 import Webcam from "react-webcam";
+const OSC = require("osc-js"); // Or var osc = new OSC();
 
 const videoBlendShapes = document.getElementById("video-blend-shapes");
 
@@ -21,26 +22,24 @@ let lastVideoTime = -1;
 let results = undefined;
 let animation, video, canvas, ctx;
 
-//OSC
-// const {Client} = require("osc");
+// OSC
 
-// const client = new Client("127.0.0.1", 8000);
 //
 
 function App() {
   const [isDetecting, setIsDetecting] = useState(0);
   const [nameModel, setNameModel] = useState("Face");
   const canvasRef = useRef(null);
-  const videoRef = useRef(null);
 
   useEffect(() => {
     // La fonction sera exécutée après le rendu du composant
-    if (canvasRef.current && videoRef.current) {
+    if (canvasRef.current) {
       canvas = canvasRef.current;
       ctx = canvas.getContext("2d");
 
       video = document.getElementById("video");
       video.addEventListener("loadeddata", () => {
+        // console.log(video.srcObject);
         canvas.setAttribute("width", video.videoWidth + "px");
         canvas.setAttribute("height", video.videoHeight + "px");
         canvas.style.left = video.offsetLeft + "px";
@@ -135,10 +134,9 @@ function App() {
   };
 
   const stopDetection = () => {
+    canvas.classList.add("hidden");
     cancelAnimationFrame(animation);
     setIsDetecting(0);
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    canvas.classList.add("hidden");
   };
 
   const poseDetect = () => {
@@ -162,7 +160,7 @@ function App() {
     }
 
     let htmlMaker = "";
-    blendShapes[0].categories.map((shape) => {
+    blendShapes[0].categories.map((shape) => (
       htmlMaker += `
               <li class="blend-shapes-item">
                 <span class="blend-shapes-label">${
@@ -172,14 +170,24 @@ function App() {
                   +shape.score * 100
                 }% - 120px)">${(+shape.score).toFixed(4)}</span>
               </li>
-            `;
-    });
+            `
+    ));
 
     el.innerHTML = htmlMaker;
   }
+  const osc = new OSC({ plugin: new OSC.WebsocketClientPlugin({ url: 'ws://localhost:8080' }) });
+  osc.open();
+  osc.on('open', () => {
+    console.log('Le client OSC est prêt à envoyer des messages.');
+  });
+
+  const testMessage = () => {
+    const message = new OSC.Message('/test', Math.floor(Math.random() * 6));
+    osc.send(message);
+  };
 
   return (
-    <div className="App">
+    <div className="App">♦
       <div>
         <label>Model :</label>
         <select onChange={handleNameModelChange} value={nameModel}>
@@ -194,8 +202,11 @@ function App() {
         <button onClick={stopDetection}>Stop detection</button>
       )}
 
-      <Webcam id="video" ref={videoRef} />
+      <Webcam id="video" />
       <canvas ref={canvasRef} className="hidden canvas" id="render" />
+      <button id="send" onClick={testMessage}>
+        Send
+      </button>
 
       {nameModel === "Face" ? (
         <div className="blend-shapes">
