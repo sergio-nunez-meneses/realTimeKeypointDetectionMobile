@@ -7,8 +7,7 @@ import { // TODO: FaceLandmarker should also be imported from ./faceLandmarker
 } from "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@latest";
 import React, {useEffect, useState} from "react";
 import Webcam from "react-webcam";
-
-const OSC = require("osc-js"); // Or var osc = new OSC();
+import OSC from "osc-js";
 
 let video, canvas, ctx;
 let animation;
@@ -152,16 +151,12 @@ function App() {
 		el.innerHTML = htmlMaker;
 	}
 
-	const osc = new OSC({
-		plugin: new OSC.WebsocketClientPlugin({url: "ws://localhost:8080"}),
-	});
+	// TODO: Start OSC when detection starts
+	const osc = new OSC();
 	osc.open();
-	osc.on("open", () => {
-		console.log("Le client OSC est prêt à envoyer des messages.");
-	});
 
-	const testMessage = () => {
-		const message = new OSC.Message("/test", Math.floor(Math.random() * 6));
+	const sendMessage = () => {
+		const message = new OSC.Message("/test/random", Math.random());
 		osc.send(message);
 	};
 
@@ -182,7 +177,7 @@ function App() {
 
 				<Webcam id="video"/>
 				<canvas id="render" className="hidden canvas"/>
-				<button id="send" onClick={testMessage}>Send</button>
+				<button id="send" onClick={sendMessage}>Send</button>
 
 				{nameModel === "Face" ? (
 						<div className="blend-shapes">
