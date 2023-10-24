@@ -1,15 +1,14 @@
 import faceLandmarker from "./faceLandmarker";
 import poseLandmarker from "./poseLandmarker";
 import handLandmarker from "./handLandmarker";
-import {
+import { // TODO: FaceLandmarker should also be imported from ./faceLandmarker
 	FaceLandmarker,
-	DrawingUtils,
+	DrawingUtils, // TODO: Check if DrawingUtils is the same for all the models
 } from "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@latest";
 import React, {useEffect, useState} from "react";
 import Webcam from "react-webcam";
 
 const videoBlendShapes = document.getElementById("video-blend-shapes");
-
 let video, canvas, ctx, animation;
 
 function App() {
@@ -111,10 +110,10 @@ function App() {
 	};
 
 	const stopDetection = () => {
+		canvas.classList.add("hidden");
+
 		cancelAnimationFrame(animation);
 		setIsDetecting(0);
-
-		canvas.classList.add("hidden");
 	};
 
 	const poseDetect = () => {
@@ -140,17 +139,13 @@ function App() {
 		let htmlMaker = "";
 		blendShapes[0].categories.map((shape) => {
 			htmlMaker += `
-              <li class="blend-shapes-item">
-                <span class="blend-shapes-label">${
-					shape.displayName || shape.categoryName
-			}</span>
-                <span class="blend-shapes-value" style="width: calc(${
-					+shape.score * 100
-			}% - 120px)">${(+shape.score).toFixed(4)}</span>
-              </li>
-            `;
+        <li class="blend-shapes-item">
+          <span class="blend-shapes-label">${shape.displayName || shape.categoryName}</span>
+          <span class="blend-shapes-value" style="width: calc(${+shape.score * 100}% - 120px)">
+						${(+shape.score).toFixed(4)}</span>
+        </li>
+      `;
 		});
-
 		el.innerHTML = htmlMaker;
 	}
 
@@ -164,11 +159,9 @@ function App() {
 						<option value={"Hand"}>Hand</option>
 					</select>
 				</div>
-				{!isDetecting ? (
-						<button onClick={startDetection}>Start detection</button>
-				) : (
-						<button onClick={stopDetection}>Stop detection</button>
-				)}
+				{/* TODO: Add containers based on the element's function */}
+				<button onClick={!isDetecting ? startDetection : stopDetection}>
+					{!isDetecting ? "Start" : "Stop"} detection</button>
 
 				<Webcam id="video"/>
 				<canvas id="render" className="hidden canvas"/>
