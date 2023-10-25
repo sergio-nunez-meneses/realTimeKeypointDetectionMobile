@@ -3,14 +3,14 @@ import vision from "./vision";
 
 let runningMode = "VIDEO";
 
-const faceLandmarker = await FaceLandmarker.createFromOptions(vision, {
+const modelFace = await FaceLandmarker.createFromOptions(vision, {
   baseOptions: {
     modelAssetPath: `https://storage.googleapis.com/mediapipe-models/face_landmarker/face_landmarker/float16/1/face_landmarker.task`,
     delegate: "GPU",
   },
   outputFaceBlendshapes: true,
   runningMode: runningMode,
-  numFaces: 6,
+  numFaces: 2,
 });
 
-export default faceLandmarker;
+export { FaceLandmarker, modelFace };

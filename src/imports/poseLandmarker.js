@@ -1,7 +1,7 @@
 import { PoseLandmarker } from "https://cdn.skypack.dev/@mediapipe/tasks-vision@latest";
 import vision from "./vision";
 
-const poseLandmarker = await PoseLandmarker.createFromOptions(vision, {
+const modelPose = await PoseLandmarker.createFromOptions(vision, {
   baseOptions: {
     modelAssetPath: `https://storage.googleapis.com/mediapipe-models/pose_landmarker/pose_landmarker_lite/float16/1/pose_landmarker_lite.task`,
     delegate: "GPU",
@@ -10,4 +10,4 @@ const poseLandmarker = await PoseLandmarker.createFromOptions(vision, {
   numPoses: 2,
 });
 
-export default poseLandmarker;
+export { modelPose, PoseLandmarker };
