@@ -1,6 +1,6 @@
-import { modelFace, FaceLandmarker } from "./imports/faceLandmarker";
-import { modelPose, PoseLandmarker } from "./imports/poseLandmarker";
-import {modelHand, handLandmarker} from "./imports/handLandmarker";
+import { faceModel, faceLandmarks } from "./models/faceLandmarker";
+import { poseModel, poseLandmarks } from "./models/poseLandmarker";
+import { handModel, handLandmarks } from "./models/handLandmarker";
 import { DrawingUtils } from "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@latest";
 import React, { useEffect, useState } from "react";
 import Webcam from "react-webcam";
