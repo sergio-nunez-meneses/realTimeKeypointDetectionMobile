@@ -5,22 +5,52 @@ import { DrawingUtils } from "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-visi
 import React, { useEffect, useState } from "react";
 import Webcam from "react-webcam";
 
-const OSC = require("osc-js"); // Or var osc = new OSC();
+const OSC = require("osc-js");
 
 let video, canvas, ctx;
-let animation;
-let videoBlendShapes;
+let animation, drawingUtils;
 
 function App() {
   const [isDetecting, setIsDetecting] = useState(0);
-  const [nameModel, setNameModel] = useState("Face");
+  const [nameModel, setNameModel] = useState("face");
+  const models = {
+    face: {
+      model: faceModel,
+      landmarks: faceLandmarks,
+      categories: [
+        "FACE_LANDMARKS_TESSELATION",
+        "FACE_LANDMARKS_RIGHT_EYE",
+        "FACE_LANDMARKS_RIGHT_EYEBROW",
+        "FACE_LANDMARKS_LEFT_EYE",
+        "FACE_LANDMARKS_LEFT_EYEBROW",
+        "FACE_LANDMARKS_FACE_OVAL",
+        "FACE_LANDMARKS_LIPS",
+        "FACE_LANDMARKS_RIGHT_IRIS",
+        "FACE_LANDMARKS_LEFT_IRIS",
+      ],
+      color: "#C0C0C070",
+    },
+    pose: {
+      model: poseModel,
+      landmarks: poseLandmarks,
+      categories: ["POSE_CONNECTIONS"],
+      color: "#00FF00",
+    },
+    hand: {
+      model: handModel,
+      landmarks: handLandmarks,
+      categories: ["HAND_CONNECTIONS"],
+      color: "#0000FF",
+    },
+  };
+  const selectedModel = models[nameModel];
 
   useEffect(() => {
-    videoBlendShapes = document.getElementById("video-blend-shapes");
     video = document.getElementById("video");
     video.addEventListener("loadeddata", () => {
       canvas = document.getElementById("render");
       ctx = canvas.getContext("2d");
+      drawingUtils = new DrawingUtils(ctx);
       canvas.width = video.videoWidth;
       canvas.height = video.videoHeight;
       canvas.style.left = video.offsetLeft + "px";
@@ -28,150 +58,70 @@ function App() {
     });
   }, []);
 
-  const startDetection = () => {
-    if (nameModel === "Pose") {
-      poseDetect();
-    } else if (nameModel === "Face") {
-      faceDetect();
-    } else {
-      handDetect();
+  const processModelLandmarks= ()=> {
+    for (const category of selectedModel["categories"]) {
+      const landmarks = selectedModel["landmarks"][category];
+      const color = selectedModel["color"];
+	//   console.log(landmarks)
+	//   console.log(color)
+
+      // Send landmark data through OSC
+      //   const message = new OSC.Message("/model/landmark/coordinates", value);
+      //   osc.send(message);
+
+      drawingUtils.drawConnectors(landmarks, color);
     }
-
-    setIsDetecting(1);
-
-    canvas.classList.remove("hidden");
-  };
-
-  const faceDetect = () => {
+  }
+  const startDetection = () => {
     let startTimeMs = performance.now();
     let lastVideoTime = -1;
     let results;
 
+    // console.log(nameModel);
     if (lastVideoTime !== video.currentTime) {
-      results = modelFace.detectForVideo(video, startTimeMs);
+      results = selectedModel.model.detectForVideo(video, startTimeMs);
       lastVideoTime = video.currentTime;
     }
+    console.log(results);
 
     ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-    // Draw landmarks on canvas
-    const drawingUtils = new DrawingUtils(ctx);
-
-    for (const landmarks of results.faceLandmarks) {
-      drawingUtils.drawConnectors(
-        landmarks,
-        FaceLandmarker.FACE_LANDMARKS_TESSELATION,
-        { color: "#C0C0C070", lineWidth: 1 }
-      );
-      drawingUtils.drawConnectors(
-        landmarks,
-        FaceLandmarker.FACE_LANDMARKS_RIGHT_EYE,
-        { color: "#FF3030" }
-      );
-      drawingUtils.drawConnectors(
-        landmarks,
-        FaceLandmarker.FACE_LANDMARKS_RIGHT_EYEBROW,
-        { color: "#FF3030" }
-      );
-      drawingUtils.drawConnectors(
-        landmarks,
-        FaceLandmarker.FACE_LANDMARKS_LEFT_EYE,
-        { color: "#30FF30" }
-      );
-      drawingUtils.drawConnectors(
-        landmarks,
-        FaceLandmarker.FACE_LANDMARKS_LEFT_EYEBROW,
-        { color: "#30FF30" }
-      );
-      drawingUtils.drawConnectors(
-        landmarks,
-        FaceLandmarker.FACE_LANDMARKS_FACE_OVAL,
-        { color: "#E0E0E0" }
-      );
-      drawingUtils.drawConnectors(
-        landmarks,
-        FaceLandmarker.FACE_LANDMARKS_LIPS,
-        { color: "#E0E0E0" }
-      );
-      drawingUtils.drawConnectors(
-        landmarks,
-        FaceLandmarker.FACE_LANDMARKS_RIGHT_IRIS,
-        { color: "#FF3030" }
-      );
-      drawingUtils.drawConnectors(
-        landmarks,
-        FaceLandmarker.FACE_LANDMARKS_LEFT_IRIS,
-        { color: "#30FF30" }
-      );
-    }
-    drawBlendShapes(videoBlendShapes, results.faceBlendshapes);
-
-    animation = window.requestAnimationFrame(faceDetect);
+    processModelLandmarks(results, nameModel, drawingUtils);
+    setIsDetecting(1);
+    canvas.classList.remove("hidden");
+    animation = window.requestAnimationFrame(startDetection);
   };
 
   const stopDetection = () => {
     canvas.classList.add("hidden");
-
     cancelAnimationFrame(animation);
     setIsDetecting(0);
-  };
-
-  const poseDetect = () => {
-    const poseLandmarkerResult = modelPose.detect(video);
-    console.log(poseLandmarkerResult);
-  };
-
-  const handDetect = () => {
-    const handLandmarkerResult = modelHand.detect(video);
-    console.log(handLandmarkerResult);
   };
 
   const handleNameModelChange = (event) => {
     setNameModel(event.target.value);
   };
 
-  function drawBlendShapes(el, blendShapes) {
-    if (blendShapes.length === 0) {
-      return;
-    }
+  //   const osc = new OSC({
+  //     plugin: new OSC.WebsocketClientPlugin({ url: "ws://localhost:8080" }),
+  //   });
+  //   osc.open();
+  //   osc.on("open", () => {
+  //     console.log("Le client OSC est prêt à envoyer des messages.");
+  //   });
 
-    let htmlMaker = "";
-    blendShapes[0].categories.map((shape) => {
-      htmlMaker += `
-				<li class="blend-shapes-item">
-					<span class="blend-shapes-label">${
-            shape.displayName || shape.categoryName
-          }</span>
-					<span class="blend-shapes-value" style="width: calc(${
-            +shape.score * 100
-          }% - 120px)">
-					${(+shape.score).toFixed(4)}</span>
-				</li>`;
-    });
-    el.innerHTML = htmlMaker;
-  }
-
-  const osc = new OSC({
-    plugin: new OSC.WebsocketClientPlugin({ url: "ws://localhost:8080" }),
-  });
-  osc.open();
-  osc.on("open", () => {
-    console.log("Le client OSC est prêt à envoyer des messages.");
-  });
-
-  const testMessage = () => {
-    const message = new OSC.Message("/test", Math.floor(Math.random() * 6));
-    osc.send(message);
-  };
+  //   const testMessage = () => {
+  //     const message = new OSC.Message("/test", Math.floor(Math.random() * 6));
+  //     osc.send(message);
+  //   };
 
   return (
     <div className="App">
       <div>
         <label>Model :</label>
         <select onChange={handleNameModelChange} value={nameModel}>
-          <option value={"Pose"}>Pose</option>
-          <option value={"Face"}>Face</option>
-          <option value={"Hand"}>Hand</option>
+          <option value={"pose"}>Pose</option>
+          <option value={"face"}>Face</option>
+          <option value={"hand"}>Hand</option>
         </select>
       </div>
       {/* TODO: Add containers based on the element's function */}
@@ -181,17 +131,9 @@ function App() {
 
       <Webcam id="video" />
       <canvas id="render" className="hidden canvas" />
-      <button id="send" onClick={testMessage}>
+      {/* <button id="send" onClick={testMessage}>
         Send
-      </button>
-
-      {nameModel === "Face" ? (
-        <div className="blend-shapes">
-          <ul className="blend-shapes-list" id="video-blend-shapes"></ul>
-        </div>
-      ) : (
-        <span></span>
-      )}
+      </button> */}
     </div>
   );
 }
