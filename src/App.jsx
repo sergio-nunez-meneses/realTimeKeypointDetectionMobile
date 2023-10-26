@@ -28,7 +28,7 @@ function App() {
         "FACE_LANDMARKS_RIGHT_IRIS",
         "FACE_LANDMARKS_LEFT_IRIS",
       ],
-      color: "#C0C0C070",
+      color: "#edebeb",
     },
     pose: {
       model: poseModel,
@@ -44,6 +44,10 @@ function App() {
     },
   };
   const selectedModel = models[nameModel];
+  const osc = new OSC({
+    plugin: new OSC.WebsocketClientPlugin({ url: "ws://localhost:8080" }),
+  });
+  osc.open();
 
   useEffect(() => {
     video = document.getElementById("video");
@@ -58,34 +62,34 @@ function App() {
     });
   }, []);
 
-  const processModelLandmarks= ()=> {
-    for (const category of selectedModel["categories"]) {
-      const landmarks = selectedModel["landmarks"][category];
-      const color = selectedModel["color"];
-	//   console.log(landmarks)
-	//   console.log(color)
-
-      // Send landmark data through OSC
-      //   const message = new OSC.Message("/model/landmark/coordinates", value);
-      //   osc.send(message);
-
-      drawingUtils.drawConnectors(landmarks, color);
-    }
-  }
   const startDetection = () => {
     let startTimeMs = performance.now();
     let lastVideoTime = -1;
     let results;
-
     // console.log(nameModel);
     if (lastVideoTime !== video.currentTime) {
       results = selectedModel.model.detectForVideo(video, startTimeMs);
       lastVideoTime = video.currentTime;
     }
-    console.log(results);
-
     ctx.clearRect(0, 0, canvas.width, canvas.height);
-    processModelLandmarks(results, nameModel, drawingUtils);
+
+    for (const landmark of results.faceLandmarks) {
+      const color = selectedModel["color"];
+
+      // Send landmark data through OSC
+      //   const message = new OSC.Message("/model/landmark/coordinates", value);
+      //   osc.send(message);
+
+      for (let i = 0; i < selectedModel["categories"].length; i++) {
+        let landmarkName = selectedModel["categories"][i];
+
+        drawingUtils.drawConnectors(
+          landmark,
+          selectedModel.landmarks[landmarkName],
+          color
+        );
+      }
+    }
     setIsDetecting(1);
     canvas.classList.remove("hidden");
     animation = window.requestAnimationFrame(startDetection);
@@ -100,19 +104,6 @@ function App() {
   const handleNameModelChange = (event) => {
     setNameModel(event.target.value);
   };
-
-  //   const osc = new OSC({
-  //     plugin: new OSC.WebsocketClientPlugin({ url: "ws://localhost:8080" }),
-  //   });
-  //   osc.open();
-  //   osc.on("open", () => {
-  //     console.log("Le client OSC est prêt à envoyer des messages.");
-  //   });
-
-  //   const testMessage = () => {
-  //     const message = new OSC.Message("/test", Math.floor(Math.random() * 6));
-  //     osc.send(message);
-  //   };
 
   return (
     <div className="App">
