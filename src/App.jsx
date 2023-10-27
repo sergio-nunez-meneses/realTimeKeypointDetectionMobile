@@ -12,7 +12,7 @@ let animation, drawingUtils;
 
 function App() {
   const [isDetecting, setIsDetecting] = useState(0);
-  const [nameModel, setNameModel] = useState("face");
+  const [modelName, setModelName] = useState("face");
   const models = {
     face: {
       model: faceModel,
@@ -42,12 +42,13 @@ function App() {
       categories: ["HAND_CONNECTIONS"],
       color: "#0000FF",
     },
+    results: null,
+    draw: null,
   };
-  const selectedModel = models[nameModel];
-  const osc = new OSC({
-    plugin: new OSC.WebsocketClientPlugin({ url: "ws://localhost:8080" }),
-  });
-  osc.open();
+
+  const selectedModel = models[modelName];
+  // const osc = new OSC();
+  // osc.open();
 
   useEffect(() => {
     video = document.getElementById("video");
@@ -63,22 +64,36 @@ function App() {
   }, []);
 
   const startDetection = () => {
+    const data = runInference();
+
+    // Send landmark data through OSC
+    //   const message = new OSC.Message("/model/landmark/coordinates", value);
+    //   osc.send(message);
+
+    displayDetection(data);
+    setIsDetecting(1);
+    canvas.classList.remove("hidden");
+    animation = window.requestAnimationFrame(startDetection);
+  };
+
+  const runInference = () => {
     let startTimeMs = performance.now();
     let lastVideoTime = -1;
     let results;
-    // console.log(nameModel);
+
     if (lastVideoTime !== video.currentTime) {
       results = selectedModel.model.detectForVideo(video, startTimeMs);
       lastVideoTime = video.currentTime;
     }
+
+    return results;
+  };
+
+  const displayDetection = (data) => {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-    for (const landmark of results.faceLandmarks) {
+    let key = "landmarks" in data ? "landmarks" : "faceLandmarks";
+    for (const landmark of data[key]) {
       const color = selectedModel["color"];
-
-      // Send landmark data through OSC
-      //   const message = new OSC.Message("/model/landmark/coordinates", value);
-      //   osc.send(message);
 
       for (let i = 0; i < selectedModel["categories"].length; i++) {
         let landmarkName = selectedModel["categories"][i];
@@ -86,13 +101,13 @@ function App() {
         drawingUtils.drawConnectors(
           landmark,
           selectedModel.landmarks[landmarkName],
-          color
+          { color, lineWidth: 0.5 }
         );
+        if (modelName !== "face") {
+          drawingUtils.drawLandmarks(landmark);
+        }
       }
     }
-    setIsDetecting(1);
-    canvas.classList.remove("hidden");
-    animation = window.requestAnimationFrame(startDetection);
   };
 
   const stopDetection = () => {
@@ -101,15 +116,16 @@ function App() {
     setIsDetecting(0);
   };
 
-  const handleNameModelChange = (event) => {
-    setNameModel(event.target.value);
+  const handlemodelNameChange = (event) => {
+    setModelName(event.target.value);
+    // TODO: définir selectedModel ici
   };
 
   return (
     <div className="App">
       <div>
         <label>Model :</label>
-        <select onChange={handleNameModelChange} value={nameModel}>
+        <select onChange={handlemodelNameChange} value={modelName}>
           <option value={"pose"}>Pose</option>
           <option value={"face"}>Face</option>
           <option value={"hand"}>Hand</option>
