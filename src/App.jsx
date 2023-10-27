@@ -28,7 +28,7 @@ function App() {
 		});
 	}, []);
 
-	const startDetection = () => {
+	const start = () => {
 		selectedModel = models[modelName];
 
 		runDetection();
@@ -39,7 +39,7 @@ function App() {
 	};
 
 	const runDetection = () => {
-		const data = runInference();
+		const data = setData();
 
 		// TODO: Process data
 
@@ -49,12 +49,12 @@ function App() {
 		osc.send(message);
 		*/
 
-		displayDetection(data);
+		displayData(data);
 
 		animation = window.requestAnimationFrame(runDetection);
 	}
 
-	const runInference = () => {
+	const setData = () => {
 		let startTimeMs   = performance.now();
 		let lastVideoTime = -1;
 		let results;
@@ -67,7 +67,7 @@ function App() {
 		return results;
 	};
 
-	const displayDetection = (data) => {
+	const displayData = (data) => {
 		ctx.clearRect(0, 0, canvas.width, canvas.height);
 
 		let key = "landmarks" in data ? "landmarks" : "faceLandmarks";
@@ -91,7 +91,7 @@ function App() {
 		}
 	};
 
-	const stopDetection = () => {
+	const stop = () => {
 		canvas.classList.add("hidden");
 
 		cancelAnimationFrame(animation);
@@ -112,7 +112,7 @@ function App() {
 				</div>
 
 				{/* TODO: Add containers based on the element's function */}
-				<button onClick={!isDetecting ? startDetection : stopDetection}>
+				<button onClick={!isDetecting ? start : stop}>
 					{!isDetecting ? "Start" : "Stop"} detection
 				</button>
 
