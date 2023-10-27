@@ -4,14 +4,13 @@ import Webcam from "react-webcam";
 import models from "./models/Models";
 import OSC from "osc-js";
 
+let selectedModel;
 let video, canvas, ctx;
 let animation, drawingUtils;
 
 function App() {
 	const [isDetecting, setIsDetecting] = useState(0);
 	const [modelName, setModelName]     = useState("face");
-
-	const selectedModel = models[modelName];
 
 	// const osc = new OSC();
 	// osc.open();
@@ -30,6 +29,16 @@ function App() {
 	}, []);
 
 	const startDetection = () => {
+		selectedModel = models[modelName];
+
+		runDetection();
+
+		setIsDetecting(1);
+
+		canvas.classList.remove("hidden");
+	};
+
+	const runDetection = () => {
 		const data = runInference();
 
 		// TODO: Process data
@@ -41,10 +50,9 @@ function App() {
 		*/
 
 		displayDetection(data);
-		setIsDetecting(1);
-		canvas.classList.remove("hidden");
-		animation = window.requestAnimationFrame(startDetection);
-	};
+
+		animation = window.requestAnimationFrame(runDetection);
+	}
 
 	const runInference = () => {
 		let startTimeMs   = performance.now();
