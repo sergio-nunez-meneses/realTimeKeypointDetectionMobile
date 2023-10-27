@@ -75,6 +75,7 @@ function App() {
 						selectedModel.landmarks[landmarkName],
 						{color, lineWidth: 0.5},
 				);
+
 				if (modelName !== "face") {
 					drawingUtils.drawLandmarks(landmark);
 				}
@@ -89,16 +90,13 @@ function App() {
 		setIsDetecting(0);
 	};
 
-	const handlemodelNameChange = (event) => {
-		setModelName(event.target.value);
-		// TODO: définir selectedModel ici
-	};
-
 	return (
 			<div className="App">
 				<div>
 					<label>Model :</label>
-					<select onChange={handlemodelNameChange} value={modelName}>
+					<select onChange={(e) => {
+						setModelName(e.target.value);
+					}} value={modelName}>
 						<option value={"pose"}>Pose</option>
 						<option value={"face"}>Face</option>
 						<option value={"hand"}>Hand</option>
