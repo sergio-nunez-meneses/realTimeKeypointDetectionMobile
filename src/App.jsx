@@ -39,7 +39,7 @@ function App() {
 	};
 
 	const runDetection = () => {
-		const data = setData();
+		setData();
 
 		// TODO: Process data
 
@@ -49,7 +49,7 @@ function App() {
 		osc.send(message);
 		*/
 
-		displayData(data);
+		displayData();
 
 		animation = window.requestAnimationFrame(runDetection);
 	}
@@ -57,22 +57,19 @@ function App() {
 	const setData = () => {
 		let startTimeMs   = performance.now();
 		let lastVideoTime = -1;
-		let results;
 
 		if (lastVideoTime !== video.currentTime) {
-			results       = selectedModel.model.detectForVideo(video, startTimeMs);
-			lastVideoTime = video.currentTime;
+			selectedModel.data = selectedModel.model.detectForVideo(video, startTimeMs);
+			lastVideoTime      = video.currentTime;
 		}
-
-		return results;
 	};
 
-	const displayData = (data) => {
+	const displayData = () => {
 		ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-		let key = "landmarks" in data ? "landmarks" : "faceLandmarks";
+		const key = "landmarks" in selectedModel.data ? "landmarks" : "faceLandmarks";
 
-		for (const landmark of data[key]) {
+		for (const landmark of selectedModel.data[key]) {
 			const color = selectedModel["color"];
 
 			for (let i = 0; i < selectedModel["categories"].length; i++) {
