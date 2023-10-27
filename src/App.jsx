@@ -5,8 +5,7 @@ import models from "./models/Models";
 import OSC from "osc-js";
 
 let selectedModel;
-let video, canvas, ctx;
-let animation, drawingUtils;
+let video, canvas, ctx, animation;
 
 function App() {
 	const [isDetecting, setIsDetecting] = useState(0);
@@ -19,12 +18,13 @@ function App() {
 		video = document.getElementById("video");
 		video.addEventListener("loadeddata", () => {
 			canvas            = document.getElementById("render");
-			ctx               = canvas.getContext("2d");
-			drawingUtils      = new DrawingUtils(ctx);
 			canvas.width      = video.videoWidth;
 			canvas.height     = video.videoHeight;
 			canvas.style.left = video.offsetLeft + "px";
 			canvas.style.top  = video.offsetTop + "px";
+
+			ctx         = canvas.getContext("2d");
+			models.draw = new DrawingUtils(ctx);
 		});
 	}, []);
 
@@ -75,14 +75,14 @@ function App() {
 			for (let i = 0; i < selectedModel["categories"].length; i++) {
 				let landmarkName = selectedModel["categories"][i];
 
-				drawingUtils.drawConnectors(
+				models.draw.drawConnectors(
 						landmark,
 						selectedModel.landmarks[landmarkName],
 						{color, lineWidth: 0.5},
 				);
 
 				if (modelName !== "face") {
-					drawingUtils.drawLandmarks(landmark);
+					models.draw.drawLandmarks(landmark);
 				}
 			}
 		}
