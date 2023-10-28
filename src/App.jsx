@@ -55,7 +55,7 @@ function App() {
 	}
 
 	const setData = () => {
-		let startTimeMs   = performance.now();
+		const startTimeMs = performance.now();
 		let lastVideoTime = -1;
 
 		if (lastVideoTime !== video.currentTime) {
@@ -67,21 +67,23 @@ function App() {
 	const displayData = () => {
 		ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-		const key = "landmarks" in selectedModel.data ? "landmarks" : "faceLandmarks";
+		const isFace  = "faceLandmarks" in selectedModel.data;
+		const dataKey = isFace ? "faceLandmarks" : "landmarks";
 
-		for (const landmark of selectedModel.data[key]) {
-			const color = selectedModel["color"];
-
-			for (let i = 0; i < selectedModel["categories"].length; i++) {
-				let landmarkName = selectedModel["categories"][i];
+		for (const landmark of selectedModel.data[dataKey]) {
+			for (let i = 0; i < selectedModel.categories.length; i++) {
+				const landmarkName = selectedModel.categories[i];
 
 				models.draw.drawConnectors(
 						landmark,
 						selectedModel.landmarks[landmarkName],
-						{color, lineWidth: 0.5},
+						{ // TODO: Add style as a property to the model object
+							color    : selectedModel.color,
+							lineWidth: 0.5,
+						},
 				);
 
-				if (modelName !== "face") {
+				if (!isFace) {
 					models.draw.drawLandmarks(landmark);
 				}
 			}
