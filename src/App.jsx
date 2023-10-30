@@ -1,212 +1,126 @@
-import faceLandmarker from "./faceLandmarker";
-import poseLandmarker from "./poseLandmarker";
-import handLandmarker from "./handLandmarker";
-import {
-  FaceLandmarker,
-  DrawingUtils,
-} from "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@latest";
-import React, { useEffect, useRef, useState } from "react";
+import {DrawingUtils} from "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@latest";
+import React, {useEffect, useState} from "react";
 import Webcam from "react-webcam";
+import models from "./models/Models";
+import OSC from "osc-js";
 
-const videoBlendShapes = document.getElementById("video-blend-shapes");
-
-// TODO: problem with html tags on return
-
-const displayTime = document.createElement("p");
-
-displayTime.id = "time";
-document.body.append(displayTime);
-
-let lastVideoTime = -1;
-let results = undefined;
-let animation, video, canvas, ctx;
-
-//OSC
-// const {Client} = require("osc");
-
-// const client = new Client("127.0.0.1", 8000);
-//
+let selectedModel;
+let video, canvas, ctx, animation;
 
 function App() {
-  const [isDetecting, setIsDetecting] = useState(0);
-  const [nameModel, setNameModel] = useState("Face");
-  const canvasRef = useRef(null);
-  const videoRef = useRef(null);
+	const [isDetecting, setIsDetecting] = useState(0);
+	const [modelName, setModelName]     = useState("face");
 
-  useEffect(() => {
-    // La fonction sera exécutée après le rendu du composant
-    if (canvasRef.current && videoRef.current) {
-      canvas = canvasRef.current;
-      ctx = canvas.getContext("2d");
+	// const osc = new OSC();
+	// osc.open();
 
-      video = document.getElementById("video");
-      video.addEventListener("loadeddata", () => {
-        canvas.setAttribute("width", video.videoWidth + "px");
-        canvas.setAttribute("height", video.videoHeight + "px");
-        canvas.style.left = video.offsetLeft + "px";
-        canvas.style.top = video.offsetTop + "px";
-      });
-    }
-  }, []);
+	useEffect(() => {
+		video = document.getElementById("video");
+		video.addEventListener("loadeddata", () => {
+			canvas            = document.getElementById("render");
+			canvas.width      = video.videoWidth;
+			canvas.height     = video.videoHeight;
+			canvas.style.left = video.offsetLeft + "px";
+			canvas.style.top  = video.offsetTop + "px";
 
-  const startDetection = () => {
-    setIsDetecting(1);
-    canvas.classList.remove("hidden");
+			ctx         = canvas.getContext("2d");
+			models.draw = new DrawingUtils(ctx);
+		});
+	}, []);
 
-    if (nameModel === "Pose") {
-      poseDetect();
-    } else if (nameModel === "Face") {
-      faceDetect();
-    } else {
-      handDetect();
-    }
-  };
-  const faceDetect = () => {
-    // Detect
-    let startTimeMs = performance.now();
+	const start = () => {
+		selectedModel = models[modelName];
 
-    // For debug
-    displayTime.innerHTML = `
-    startTimeMs: ${startTimeMs.toFixed()},
-    currentTime: ${video.currentTime.toFixed()};
-    lastVideoTime: ${lastVideoTime.toFixed()};
-    `;
+		runDetection();
 
-    if (lastVideoTime !== video.currentTime) {
-      results = faceLandmarker.detectForVideo(video, startTimeMs);
-      lastVideoTime = video.currentTime;
-    }
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
+		setIsDetecting(1);
 
-    // Draw landmarks on canvas
+		canvas.classList.remove("hidden");
+	};
 
-    const drawingUtils = new DrawingUtils(ctx);
+	const runDetection = () => {
+		setData();
 
-    for (const landmarks of results.faceLandmarks) {
-      drawingUtils.drawConnectors(
-        landmarks,
-        FaceLandmarker.FACE_LANDMARKS_TESSELATION,
-        { color: "#C0C0C070", lineWidth: 1 }
-      );
-      drawingUtils.drawConnectors(
-        landmarks,
-        FaceLandmarker.FACE_LANDMARKS_RIGHT_EYE,
-        { color: "#FF3030" }
-      );
-      drawingUtils.drawConnectors(
-        landmarks,
-        FaceLandmarker.FACE_LANDMARKS_RIGHT_EYEBROW,
-        { color: "#FF3030" }
-      );
-      drawingUtils.drawConnectors(
-        landmarks,
-        FaceLandmarker.FACE_LANDMARKS_LEFT_EYE,
-        { color: "#30FF30" }
-      );
-      drawingUtils.drawConnectors(
-        landmarks,
-        FaceLandmarker.FACE_LANDMARKS_LEFT_EYEBROW,
-        { color: "#30FF30" }
-      );
-      drawingUtils.drawConnectors(
-        landmarks,
-        FaceLandmarker.FACE_LANDMARKS_FACE_OVAL,
-        { color: "#E0E0E0" }
-      );
-      drawingUtils.drawConnectors(
-        landmarks,
-        FaceLandmarker.FACE_LANDMARKS_LIPS,
-        { color: "#E0E0E0" }
-      );
-      drawingUtils.drawConnectors(
-        landmarks,
-        FaceLandmarker.FACE_LANDMARKS_RIGHT_IRIS,
-        { color: "#FF3030" }
-      );
-      drawingUtils.drawConnectors(
-        landmarks,
-        FaceLandmarker.FACE_LANDMARKS_LEFT_IRIS,
-        { color: "#30FF30" }
-      );
-    }
-    drawBlendShapes(videoBlendShapes, results.faceBlendshapes);
+		// TODO: Process data
 
-    animation = window.requestAnimationFrame(faceDetect);
-  };
+		/* TODO: Send data through OSC
+		Example:
+		const message = new OSC.Message("/model/landmark/coordinates", value);
+		osc.send(message);
+		*/
 
-  const stopDetection = () => {
-    cancelAnimationFrame(animation);
-    setIsDetecting(0);
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    canvas.classList.add("hidden");
-  };
+		displayData();
 
-  const poseDetect = () => {
-    const poseLandmarkerResult = poseLandmarker.detect(video);
-    console.log(poseLandmarkerResult);
-  };
+		animation = window.requestAnimationFrame(runDetection);
+	}
 
-  const handDetect = () => {
-    const handLandmarkerResult = handLandmarker.detect(video);
-    console.log(handLandmarkerResult);
-  };
+	const setData = () => {
+		const startTimeMs = performance.now();
+		let lastVideoTime = -1;
 
-  const handleNameModelChange = (event) => {
-    setNameModel(event.target.value);
-  };
+		if (lastVideoTime !== video.currentTime) {
+			selectedModel.data = selectedModel.model.detectForVideo(video, startTimeMs);
+			lastVideoTime      = video.currentTime;
+		}
+	};
 
-  function drawBlendShapes(el, blendShapes) {
-    el = document.getElementById("el");
-    if (!blendShapes.length) {
-      return;
-    }
+	const displayData = () => {
+		ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-    let htmlMaker = "";
-    blendShapes[0].categories.map((shape) => {
-      htmlMaker += `
-              <li class="blend-shapes-item">
-                <span class="blend-shapes-label">${
-                  shape.displayName || shape.categoryName
-                }</span>
-                <span class="blend-shapes-value" style="width: calc(${
-                  +shape.score * 100
-                }% - 120px)">${(+shape.score).toFixed(4)}</span>
-              </li>
-            `;
-    });
+		const isFace  = "faceLandmarks" in selectedModel.data;
+		const dataKey = isFace ? "faceLandmarks" : "landmarks";
 
-    el.innerHTML = htmlMaker;
-  }
+		for (const landmark of selectedModel.data[dataKey]) {
+			for (let i = 0; i < selectedModel.categories.length; i++) {
+				const landmarkName = selectedModel.categories[i];
 
-  return (
-    <div className="App">
-      <div>
-        <label>Model :</label>
-        <select onChange={handleNameModelChange} value={nameModel}>
-          <option value={"Pose"}>Pose</option>
-          <option value={"Face"}>Face</option>
-          <option value={"Hand"}>Hand</option>
-        </select>
-      </div>
-      {isDetecting === 0 ? (
-        <button onClick={startDetection}>Start detection</button>
-      ) : (
-        <button onClick={stopDetection}>Stop detection</button>
-      )}
+				models.draw.drawConnectors(
+						landmark,
+						selectedModel.landmarks[landmarkName],
+						{ // TODO: Add style as a property to the model object
+							color    : selectedModel.color,
+							lineWidth: 0.5,
+						},
+				);
 
-      <Webcam id="video" ref={videoRef} />
-      <canvas ref={canvasRef} className="hidden canvas" id="render" />
+				if (!isFace) {
+					models.draw.drawLandmarks(landmark);
+				}
+			}
+		}
+	};
 
-      {nameModel === "Face" ? (
-        <div className="blend-shapes">
-          <ul className="blend-shapes-list" id="video-blend-shapes"></ul>
-        </div>
-      ) : (
-        <span></span>
-      )}
-      <span id="el"></span>
-    </div>
-  );
+	const stop = () => {
+		canvas.classList.add("hidden");
+
+		cancelAnimationFrame(animation);
+		setIsDetecting(0);
+	};
+
+	return (
+			<div className="App">
+				<div>
+					<label>Model :</label>
+					<select onChange={(e) => {
+						setModelName(e.target.value);
+					}} value={modelName}>
+						<option value={"pose"}>Pose</option>
+						<option value={"face"}>Face</option>
+						<option value={"hand"}>Hand</option>
+					</select>
+				</div>
+
+				{/* TODO: Add containers based on the element's function */}
+				<button onClick={!isDetecting ? start : stop}>
+					{!isDetecting ? "Start" : "Stop"} detection
+				</button>
+
+				<Webcam id="video"/>
+				<canvas id="render" className="hidden canvas"/>
+
+				{/* <button id="send" onClick={testMessage}>Send</button> */}
+			</div>
+	);
 }
 
 export default App;
