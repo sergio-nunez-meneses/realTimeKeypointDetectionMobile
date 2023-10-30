@@ -1,115 +1,126 @@
-import { DrawingUtils } from "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@latest";
-import React, { useEffect, useState } from "react";
+import {DrawingUtils} from "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@latest";
+import React, {useEffect, useState} from "react";
 import Webcam from "react-webcam";
 import models from "./models/Models";
+import OSC from "osc-js";
 
-const OSC = require("osc-js");
-
-let video, canvas, ctx;
-let animation, drawingUtils;
+let selectedModel;
+let video, canvas, ctx, animation;
 
 function App() {
-  const [isDetecting, setIsDetecting] = useState(0);
-  const [modelName, setModelName] = useState("face");
-  
+	const [isDetecting, setIsDetecting] = useState(0);
+	const [modelName, setModelName]     = useState("face");
 
-  const selectedModel = models[modelName];
-  // const osc = new OSC();
-  // osc.open();
+	// const osc = new OSC();
+	// osc.open();
 
-  useEffect(() => {
-    video = document.getElementById("video");
-    video.addEventListener("loadeddata", () => {
-      canvas = document.getElementById("render");
-      ctx = canvas.getContext("2d");
-      drawingUtils = new DrawingUtils(ctx);
-      canvas.width = video.videoWidth;
-      canvas.height = video.videoHeight;
-      canvas.style.left = video.offsetLeft + "px";
-      canvas.style.top = video.offsetTop + "px";
-    });
-  }, []);
+	useEffect(() => {
+		video = document.getElementById("video");
+		video.addEventListener("loadeddata", () => {
+			canvas            = document.getElementById("render");
+			canvas.width      = video.videoWidth;
+			canvas.height     = video.videoHeight;
+			canvas.style.left = video.offsetLeft + "px";
+			canvas.style.top  = video.offsetTop + "px";
 
-  const startDetection = () => {
-    const data = runInference();
+			ctx         = canvas.getContext("2d");
+			models.draw = new DrawingUtils(ctx);
+		});
+	}, []);
 
-    // Send landmark data through OSC
-    //   const message = new OSC.Message("/model/landmark/coordinates", value);
-    //   osc.send(message);
+	const start = () => {
+		selectedModel = models[modelName];
 
-    displayDetection(data);
-    setIsDetecting(1);
-    canvas.classList.remove("hidden");
-    animation = window.requestAnimationFrame(startDetection);
-  };
+		runDetection();
 
-  const runInference = () => {
-    let startTimeMs = performance.now();
-    let lastVideoTime = -1;
-    let results;
+		setIsDetecting(1);
 
-    if (lastVideoTime !== video.currentTime) {
-      results = selectedModel.model.detectForVideo(video, startTimeMs);
-      lastVideoTime = video.currentTime;
-    }
+		canvas.classList.remove("hidden");
+	};
 
-    return results;
-  };
+	const runDetection = () => {
+		setData();
 
-  const displayDetection = (data) => {
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    let key = "landmarks" in data ? "landmarks" : "faceLandmarks";
-    for (const landmark of data[key]) {
-      const color = selectedModel["color"];
+		// TODO: Process data
 
-      for (let i = 0; i < selectedModel["categories"].length; i++) {
-        let landmarkName = selectedModel["categories"][i];
+		/* TODO: Send data through OSC
+		Example:
+		const message = new OSC.Message("/model/landmark/coordinates", value);
+		osc.send(message);
+		*/
 
-        drawingUtils.drawConnectors(
-          landmark,
-          selectedModel.landmarks[landmarkName],
-          { color, lineWidth: 0.5 }
-        );
-        if (modelName !== "face") {
-          drawingUtils.drawLandmarks(landmark);
-        }
-      }
-    }
-  };
+		displayData();
 
-  const stopDetection = () => {
-    canvas.classList.add("hidden");
-    cancelAnimationFrame(animation);
-    setIsDetecting(0);
-  };
+		animation = window.requestAnimationFrame(runDetection);
+	}
 
-  const handlemodelNameChange = (event) => {
-    setModelName(event.target.value);
-    // TODO: définir selectedModel ici
-  };
+	const setData = () => {
+		const startTimeMs = performance.now();
+		let lastVideoTime = -1;
 
-  return (
-    <div className="App">
-      <div>
-        <label>Model :</label>
-        <select onChange={handlemodelNameChange} value={modelName}>
-          <option value={"pose"}>Pose</option>
-          <option value={"face"}>Face</option>
-          <option value={"hand"}>Hand</option>
-        </select>
-      </div>
-      {/* TODO: Add containers based on the element's function */}
-      <button onClick={!isDetecting ? startDetection : stopDetection}>
-        {!isDetecting ? "Start" : "Stop"} detection
-      </button>
+		if (lastVideoTime !== video.currentTime) {
+			selectedModel.data = selectedModel.model.detectForVideo(video, startTimeMs);
+			lastVideoTime      = video.currentTime;
+		}
+	};
 
-      <Webcam id="video" />
-      <canvas id="render" className="hidden canvas" />
-      {/* <button id="send" onClick={testMessage}>
-        Send
-      </button> */}
-    </div>
-  );
+	const displayData = () => {
+		ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+		const isFace  = "faceLandmarks" in selectedModel.data;
+		const dataKey = isFace ? "faceLandmarks" : "landmarks";
+
+		for (const landmark of selectedModel.data[dataKey]) {
+			for (let i = 0; i < selectedModel.categories.length; i++) {
+				const landmarkName = selectedModel.categories[i];
+
+				models.draw.drawConnectors(
+						landmark,
+						selectedModel.landmarks[landmarkName],
+						{ // TODO: Add style as a property to the model object
+							color    : selectedModel.color,
+							lineWidth: 0.5,
+						},
+				);
+
+				if (!isFace) {
+					models.draw.drawLandmarks(landmark);
+				}
+			}
+		}
+	};
+
+	const stop = () => {
+		canvas.classList.add("hidden");
+
+		cancelAnimationFrame(animation);
+		setIsDetecting(0);
+	};
+
+	return (
+			<div className="App">
+				<div>
+					<label>Model :</label>
+					<select onChange={(e) => {
+						setModelName(e.target.value);
+					}} value={modelName}>
+						<option value={"pose"}>Pose</option>
+						<option value={"face"}>Face</option>
+						<option value={"hand"}>Hand</option>
+					</select>
+				</div>
+
+				{/* TODO: Add containers based on the element's function */}
+				<button onClick={!isDetecting ? start : stop}>
+					{!isDetecting ? "Start" : "Stop"} detection
+				</button>
+
+				<Webcam id="video"/>
+				<canvas id="render" className="hidden canvas"/>
+
+				{/* <button id="send" onClick={testMessage}>Send</button> */}
+			</div>
+	);
 }
 
 export default App;
