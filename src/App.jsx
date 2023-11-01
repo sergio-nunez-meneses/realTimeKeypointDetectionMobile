@@ -2,7 +2,6 @@ import {DrawingUtils} from "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision
 import React, {useEffect, useState} from "react";
 import Webcam from "react-webcam";
 import models from "./models/Models";
-import OSC from "osc-js";
 
 let selectedModel;
 let video, canvas, ctx, animation;
@@ -42,6 +41,7 @@ function App() {
 		setData();
 
 		// TODO: Process data
+		processData()
 
 		/* TODO: Send data through OSC
 		Example:
@@ -51,7 +51,7 @@ function App() {
 
 		displayData();
 
-		animation = window.requestAnimationFrame(runDetection);
+		// animation = window.requestAnimationFrame(runDetection);
 	}
 
 	const setData = () => {
@@ -64,6 +64,18 @@ function App() {
 		}
 	};
 
+	const processData = () => {
+		let normData = {};
+		const data = selectedModel.data;
+		let hands = data.handedness.map(hand => hand[0]["displayName"]);
+		console.log(hands);
+
+		for (const landmark of data.landmarks) {
+			landmark.forEach((coords, index) => console.log(index, coords))
+		}
+	}
+
+
 	const displayData = () => {
 		ctx.clearRect(0, 0, canvas.width, canvas.height);
 
@@ -72,14 +84,17 @@ function App() {
 
 		for (const landmark of selectedModel.data[dataKey]) {
 			for (let i = 0; i < selectedModel.categories.length; i++) {
-				const landmarkName = selectedModel.categories[i];
+				const category     = selectedModel.categories[i];
+				const landmarkName = category.name;
+				const color        = category.color;
+				const lineWidth    = category.lineWidth;
 
 				models.draw.drawConnectors(
 						landmark,
 						selectedModel.landmarks[landmarkName],
-						{ // TODO: Add style as a property to the model object
-							color    : selectedModel.color,
-							lineWidth: 0.5,
+						{
+							color    : color,
+							lineWidth: lineWidth,
 						},
 				);
 
