@@ -2,18 +2,20 @@ import {DrawingUtils} from "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision
 import React, {useEffect, useState} from "react";
 import Webcam from "react-webcam";
 import models from "./models/Models";
+const OSC    = require("osc-js")
 
 let selectedModel;
 let video, canvas, ctx, animation;
-let dataToSend = []
+let dataToSend = [];
+let message;
 
 
 function App() {
 	const [isDetecting, setIsDetecting] = useState(0);
 	const [modelName, setModelName]     = useState("face");
 
-	// const osc = new OSC();
-	// osc.open();
+	const osc = new OSC();
+	osc.open();
 
 	useEffect(() => {
 		video = document.getElementById("video");
@@ -57,10 +59,13 @@ function App() {
 		const message = new OSC.Message("/model/landmark/coordinates", value);
 		osc.send(message);
 		*/
+		sendMessage();
 
-		// displayData();
 
-		// animation = window.requestAnimationFrame(runDetection);
+
+		displayData();
+
+		animation = window.requestAnimationFrame(runDetection);
 	}
 
 	const setData = () => {
@@ -79,9 +84,8 @@ function App() {
 		landmarks.forEach((hand, i) => {
 			hand.forEach((coordinates, j) => {
 				let processedData          = {};
-				processedData.handName     = unprocessedData.handedness[i][0].displayName;
-				processedData.landmarkName = selectedModel.landmarkName[j];
-				processedData.coords       = "xyz" + " " + [hand[j].x, hand[j].y, hand[j].z];
+				processedData = `${unprocessedData.handedness[i][0].displayName} ${selectedModel.landmarkName[j]} x: ${hand[j].x}, y: ${hand[j].y}, z: ${hand[j].z}`
+
 				// console.log(processedData);
 				dataToSend.push(processedData);
 			})
@@ -91,13 +95,12 @@ function App() {
 	}
 
 	const processPoseData = () => {
-		let dataToSend        = [];
 		const unprocessedData = selectedModel.data;
 		const landmarks       = unprocessedData.landmarks[0];
 		for (let i = 0; i < landmarks.length; i++) {
 			let processedData          = {}
-			processedData.landmarkName = selectedModel.landmarkName[i];
-			processedData.coords       = [landmarks[i].x, landmarks[i].y, landmarks[i].z]
+			processedData = `${selectedModel.landmarkName[i]} x: ${landmarks[i].x}, y: ${landmarks[i].y}, z: ${landmarks[i].z}`;
+
 			dataToSend.push(processedData);
 		}
 
@@ -105,10 +108,37 @@ function App() {
 	};
 
 	const processFaceData = () => {
-		let dataToSend = [];
+		let processedData = {};
 		const unprocessedData = selectedModel.data;
-		console.log(unprocessedData);
+		const blendShapes = unprocessedData.faceBlendshapes[0].categories;
+		const landmarks = unprocessedData.faceLandmarks[0];
+		// const arrays = selectedModel.array;
+		// console.log(unprocessedData)
+		// console.log(blendShapes.categories);
 
+
+		blendShapes.forEach((blendShape) => {
+			processedData.blendshapes = `${blendShape.categoryName}, ${blendShape.score}`;
+			dataToSend.push(processedData.blendshapes);
+
+		})
+
+
+		landmarks.forEach((landmark, index) =>{
+			processedData.coordinates = `${index}, x: ${landmark.x}, y: ${landmark.y}, z: ${landmark.z}`;
+
+			dataToSend.push(processedData.coordinates);
+
+		})
+		console.log(dataToSend);
+	}
+
+	const sendMessage = ()=>{
+		for (let i=0; i < dataToSend.length; i++){
+		message = new OSC.Message("/model/landmark/coordinates", dataToSend[i]);
+		osc.send(message);
+		}
+		dataToSend=[];
 	}
 
 
