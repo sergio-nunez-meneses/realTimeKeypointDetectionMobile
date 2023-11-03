@@ -10,7 +10,7 @@ let dataToSend = []
 
 function App() {
 	const [isDetecting, setIsDetecting] = useState(0);
-	const [modelName, setModelName]     = useState("pose");
+	const [modelName, setModelName]     = useState("face");
 
 	// const osc = new OSC();
 	// osc.open();
@@ -50,7 +50,7 @@ function App() {
 			processPoseData();
 		}
 		else if (modelName === "face") {
-			processData()
+			processFaceData()
 		}
 		/* TODO: Send data through OSC
 		Example:
@@ -73,32 +73,19 @@ function App() {
 		}
 	};
 
-	const processData = () => {
-		// let normData = {};
-		const data = selectedModel.data;
-		console.log(data);
-		// let hands = data.handedness.map(hand => hand[0]["displayName"]);
-		// console.log(hands);
-		//
-		// for (const landmark of data.landmarks) {
-		// 	landmark.forEach((coords, index) => console.log(index, coords))
-		// }
-	}
-
 	const processHandData = () => {
 		const unprocessedData = selectedModel.data;
 		const landmarks       = unprocessedData.landmarks;
 		landmarks.forEach((hand, i) => {
-			let processedData      = {};
-			processedData.handName = unprocessedData.handedness[i][0].displayName;
-
 			hand.forEach((coordinates, j) => {
+				let processedData          = {};
+				processedData.handName     = unprocessedData.handedness[i][0].displayName;
 				processedData.landmarkName = selectedModel.landmarkName[j];
 				processedData.coords       = "xyz" + " " + [hand[j].x, hand[j].y, hand[j].z];
 				// console.log(processedData);
 				dataToSend.push(processedData);
-				console.log(dataToSend);
 			})
+			console.log(dataToSend);
 		})
 		// console.log(dataToSend);
 	}
@@ -107,8 +94,8 @@ function App() {
 		let dataToSend        = [];
 		const unprocessedData = selectedModel.data;
 		const landmarks       = unprocessedData.landmarks[0];
-		let processedData     = {}
 		for (let i = 0; i < landmarks.length; i++) {
+			let processedData          = {}
 			processedData.landmarkName = selectedModel.landmarkName[i];
 			processedData.coords       = [landmarks[i].x, landmarks[i].y, landmarks[i].z]
 			dataToSend.push(processedData);
@@ -116,6 +103,13 @@ function App() {
 
 		console.log(dataToSend);
 	};
+
+	const processFaceData = () => {
+		let dataToSend = [];
+		const unprocessedData = selectedModel.data;
+		console.log(unprocessedData);
+
+	}
 
 
 	const displayData = () => {
