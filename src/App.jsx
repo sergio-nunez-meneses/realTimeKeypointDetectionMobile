@@ -48,20 +48,42 @@ function App() {
 	const runDetection = () => {
 		setData();
 
-		isFace   = "faceLandmarks" in selectedModel.data;
-		modelKey = isFace ? "faceLandmarks" : "landmarks";
+		// TODO: Create function processData
+		const rawData = selectedModel.data;
+		isFace        = "faceLandmarks" in rawData;
+		modelKey      = isFace ? "faceLandmarks" : "landmarks";
 
-		// TODO: Process data
-		selectedModel.data[modelKey].forEach(landmark => console.log(landmark));
-		// if (modelName === "hand") {
-		// 	processHandData();
-		// }
-		// else if (modelName === "pose") {
-		// 	processPoseData();
-		// }
-		// else if (modelName === "face") {
-		// 	processFaceData()
-		// }
+		rawData[modelKey].forEach((landmarks, i) => {
+			let handName;
+			if (modelName === "hand") {
+				rawData.handedness.forEach(handInfo => {
+					handName = handInfo[0].categoryName.toLowerCase();
+				})
+			}
+
+			landmarks.forEach((coordinates, j) => {
+				const landmarkData = {
+					[modelName]: {},
+				};
+				const landmarkName = isFace ? "face" : selectedModel.namedLandmarks[j];
+				const data         = {
+					[landmarkName]: {
+						"x": coordinates.x,
+						"y": coordinates.y,
+						"z": coordinates.z,
+					},
+				}
+
+				if (modelName === "hand") {
+					landmarkData[modelName][handName] = data;
+				}
+				else {
+					landmarkData[modelName] = data
+				}
+				console.log(landmarkData);
+			})
+		})
+
 		/* TODO: Send data through OSC
 		Example:
 		const message = new OSC.Message("/model/landmark/coordinates", value);
@@ -83,61 +105,6 @@ function App() {
 			lastVideoTime      = video.currentTime;
 		}
 	};
-
-	const processHandData = () => {
-		const unprocessedData = selectedModel.data;
-		const landmarks       = unprocessedData.landmarks;
-		landmarks.forEach((hand, i) => {
-			hand.forEach((coordinates, j) => {
-				let processedData = {};
-				processedData     = `${unprocessedData.handedness[i][0].displayName} ${selectedModel.landmarkName[j]} x: ${hand[j].x}, y: ${hand[j].y}, z: ${hand[j].z}`
-
-				// console.log(processedData);
-				dataToSend.push(processedData);
-			})
-			console.log(dataToSend);
-		})
-		// console.log(dataToSend);
-	}
-
-	const processPoseData = () => {
-		const unprocessedData = selectedModel.data;
-		const landmarks       = unprocessedData.landmarks[0];
-		for (let i = 0; i < landmarks.length; i++) {
-			let processedData = {}
-			processedData     = `${selectedModel.landmarkName[i]} x: ${landmarks[i].x}, y: ${landmarks[i].y}, z: ${landmarks[i].z}`;
-
-			dataToSend.push(processedData);
-		}
-
-		console.log(dataToSend);
-	};
-
-	const processFaceData = () => {
-		let processedData     = {};
-		const unprocessedData = selectedModel.data;
-		const blendShapes     = unprocessedData.faceBlendshapes[0].categories;
-		const landmarks       = unprocessedData.faceLandmarks[0];
-		// const arrays = selectedModel.array;
-		// console.log(unprocessedData)
-		// console.log(blendShapes.categories);
-
-
-		blendShapes.forEach((blendShape) => {
-			processedData.blendshapes = `${blendShape.categoryName}, ${blendShape.score}`;
-			dataToSend.push(processedData.blendshapes);
-
-		})
-
-
-		landmarks.forEach((landmark, index) => {
-			processedData.coordinates = `${index}, x: ${landmark.x}, y: ${landmark.y}, z: ${landmark.z}`;
-
-			dataToSend.push(processedData.coordinates);
-
-		})
-		console.log(dataToSend);
-	}
 
 	const sendMessage = () => {
 		for (let i = 0; i < dataToSend.length; i++) {
