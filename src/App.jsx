@@ -2,12 +2,16 @@ import {DrawingUtils} from "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision
 import React, {useEffect, useState} from "react";
 import Webcam from "react-webcam";
 import models from "./models/Models";
-const OSC    = require("osc-js")
+
+const OSC = require("osc-js")
+
 
 let selectedModel;
 let video, canvas, ctx, animation;
 let dataToSend = [];
 let message;
+
+let isFace, modelKey;
 
 
 function App() {
@@ -44,16 +48,20 @@ function App() {
 	const runDetection = () => {
 		setData();
 
+		isFace   = "faceLandmarks" in selectedModel.data;
+		modelKey = isFace ? "faceLandmarks" : "landmarks";
+
 		// TODO: Process data
-		if (modelName === "hand") {
-			processHandData();
-		}
-		else if (modelName === "pose") {
-			processPoseData();
-		}
-		else if (modelName === "face") {
-			processFaceData()
-		}
+		selectedModel.data[modelKey].forEach(landmark => console.log(landmark));
+		// if (modelName === "hand") {
+		// 	processHandData();
+		// }
+		// else if (modelName === "pose") {
+		// 	processPoseData();
+		// }
+		// else if (modelName === "face") {
+		// 	processFaceData()
+		// }
 		/* TODO: Send data through OSC
 		Example:
 		const message = new OSC.Message("/model/landmark/coordinates", value);
@@ -61,11 +69,9 @@ function App() {
 		*/
 		sendMessage();
 
-
-
 		displayData();
 
-		animation = window.requestAnimationFrame(runDetection);
+		// animation = window.requestAnimationFrame(runDetection);
 	}
 
 	const setData = () => {
@@ -83,8 +89,8 @@ function App() {
 		const landmarks       = unprocessedData.landmarks;
 		landmarks.forEach((hand, i) => {
 			hand.forEach((coordinates, j) => {
-				let processedData          = {};
-				processedData = `${unprocessedData.handedness[i][0].displayName} ${selectedModel.landmarkName[j]} x: ${hand[j].x}, y: ${hand[j].y}, z: ${hand[j].z}`
+				let processedData = {};
+				processedData     = `${unprocessedData.handedness[i][0].displayName} ${selectedModel.landmarkName[j]} x: ${hand[j].x}, y: ${hand[j].y}, z: ${hand[j].z}`
 
 				// console.log(processedData);
 				dataToSend.push(processedData);
@@ -98,8 +104,8 @@ function App() {
 		const unprocessedData = selectedModel.data;
 		const landmarks       = unprocessedData.landmarks[0];
 		for (let i = 0; i < landmarks.length; i++) {
-			let processedData          = {}
-			processedData = `${selectedModel.landmarkName[i]} x: ${landmarks[i].x}, y: ${landmarks[i].y}, z: ${landmarks[i].z}`;
+			let processedData = {}
+			processedData     = `${selectedModel.landmarkName[i]} x: ${landmarks[i].x}, y: ${landmarks[i].y}, z: ${landmarks[i].z}`;
 
 			dataToSend.push(processedData);
 		}
@@ -108,10 +114,10 @@ function App() {
 	};
 
 	const processFaceData = () => {
-		let processedData = {};
+		let processedData     = {};
 		const unprocessedData = selectedModel.data;
-		const blendShapes = unprocessedData.faceBlendshapes[0].categories;
-		const landmarks = unprocessedData.faceLandmarks[0];
+		const blendShapes     = unprocessedData.faceBlendshapes[0].categories;
+		const landmarks       = unprocessedData.faceLandmarks[0];
 		// const arrays = selectedModel.array;
 		// console.log(unprocessedData)
 		// console.log(blendShapes.categories);
@@ -124,7 +130,7 @@ function App() {
 		})
 
 
-		landmarks.forEach((landmark, index) =>{
+		landmarks.forEach((landmark, index) => {
 			processedData.coordinates = `${index}, x: ${landmark.x}, y: ${landmark.y}, z: ${landmark.z}`;
 
 			dataToSend.push(processedData.coordinates);
@@ -133,22 +139,19 @@ function App() {
 		console.log(dataToSend);
 	}
 
-	const sendMessage = ()=>{
-		for (let i=0; i < dataToSend.length; i++){
-		message = new OSC.Message("/model/landmark/coordinates", dataToSend[i]);
-		osc.send(message);
+	const sendMessage = () => {
+		for (let i = 0; i < dataToSend.length; i++) {
+			message = new OSC.Message("/model/landmark/coordinates", dataToSend[i]);
+			osc.send(message);
 		}
-		dataToSend=[];
+		dataToSend = [];
 	}
 
 
 	const displayData = () => {
 		ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-		const isFace  = "faceLandmarks" in selectedModel.data;
-		const dataKey = isFace ? "faceLandmarks" : "landmarks";
-
-		for (const landmark of selectedModel.data[dataKey]) {
+		for (const landmark of selectedModel.data[modelKey]) {
 			for (let i = 0; i < selectedModel.categories.length; i++) {
 				const category     = selectedModel.categories[i];
 				const landmarkName = category.name;
