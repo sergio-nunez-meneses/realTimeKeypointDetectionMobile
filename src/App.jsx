@@ -48,7 +48,31 @@ function App() {
 	const runDetection = () => {
 		setData();
 
-		// TODO: Create function processData
+		processData();
+
+		/* TODO: Send data through OSC
+		Example:
+		const message = new OSC.Message("/model/landmark/coordinates", value);
+		osc.send(message);
+		*/
+		sendMessage();
+
+		displayData();
+
+		// animation = window.requestAnimationFrame(runDetection);
+	}
+
+	const setData = () => {
+		const startTimeMs = performance.now();
+		let lastVideoTime = -1;
+
+		if (lastVideoTime !== video.currentTime) {
+			selectedModel.data = selectedModel.model.detectForVideo(video, startTimeMs);
+			lastVideoTime      = video.currentTime;
+		}
+	};
+
+	const processData = () => {
 		const rawData = selectedModel.data;
 		isFace        = "faceLandmarks" in rawData;
 		modelKey      = isFace ? "faceLandmarks" : "landmarks";
@@ -83,28 +107,7 @@ function App() {
 				console.log(landmarkData);
 			})
 		})
-
-		/* TODO: Send data through OSC
-		Example:
-		const message = new OSC.Message("/model/landmark/coordinates", value);
-		osc.send(message);
-		*/
-		sendMessage();
-
-		displayData();
-
-		// animation = window.requestAnimationFrame(runDetection);
 	}
-
-	const setData = () => {
-		const startTimeMs = performance.now();
-		let lastVideoTime = -1;
-
-		if (lastVideoTime !== video.currentTime) {
-			selectedModel.data = selectedModel.model.detectForVideo(video, startTimeMs);
-			lastVideoTime      = video.currentTime;
-		}
-	};
 
 	const sendMessage = () => {
 		for (let i = 0; i < dataToSend.length; i++) {
