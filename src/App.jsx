@@ -11,7 +11,7 @@ let video, canvas, ctx, animation;
 let dataToSend = [];
 let message;
 
-let isFace, modelKey;
+let isFace, modelKey, normData;
 
 
 function App() {
@@ -46,6 +46,8 @@ function App() {
 	};
 
 	const runDetection = () => {
+		normData = [];
+
 		setData();
 
 		processData();
@@ -78,17 +80,11 @@ function App() {
 		modelKey      = isFace ? "faceLandmarks" : "landmarks";
 
 		rawData[modelKey].forEach((landmarks, i) => {
-			let handName;
-			if (modelName === "hand") {
-				rawData.handedness.forEach(handInfo => {
-					handName = handInfo[0].categoryName.toLowerCase();
-				})
-			}
-
 			landmarks.forEach((coordinates, j) => {
 				const landmarkData = {
 					[modelName]: {},
 				};
+
 				const landmarkName = isFace ? "face" : selectedModel.namedLandmarks[j];
 				const data         = {
 					[landmarkName]: {
@@ -99,12 +95,13 @@ function App() {
 				}
 
 				if (modelName === "hand") {
+					let handName                      = rawData.handedness[i][0].categoryName.toLowerCase();
 					landmarkData[modelName][handName] = data;
 				}
 				else {
 					landmarkData[modelName] = data
 				}
-				console.log(landmarkData);
+				normData.push(landmarkData);
 			})
 		})
 	}
