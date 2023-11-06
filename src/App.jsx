@@ -107,28 +107,32 @@ function App() {
 
 	const processFaceData = () => {
 		let processedData = {};
-		const unprocessedData = selectedModel.data;
-		const blendShapes = unprocessedData.faceBlendshapes[0].categories;
-		const landmarks = unprocessedData.faceLandmarks[0];
-		// const arrays = selectedModel.array;
-		// console.log(unprocessedData)
-		// console.log(blendShapes.categories);
+
+			const unprocessedData = selectedModel.data;
+		if (unprocessedData.faceBlendshapes[0]!== undefined) {
+
+			const blendShapes     = unprocessedData.faceBlendshapes[0].categories;
+			const landmarks       = unprocessedData.faceLandmarks[0];
+			// const arrays = selectedModel.array;
+			// console.log(unprocessedData)
+			// console.log(blendShapes.categories);
 
 
-		blendShapes.forEach((blendShape) => {
-			processedData.blendshapes = `${blendShape.categoryName}, ${blendShape.score}`;
-			dataToSend.push(processedData.blendshapes);
+			blendShapes.forEach((blendShape) => {
+				processedData.blendshapes = `${blendShape.categoryName}, ${blendShape.score}`;
+				dataToSend.push(processedData.blendshapes);
 
-		})
+			})
 
 
-		landmarks.forEach((landmark, index) =>{
-			processedData.coordinates = `${index}, x: ${landmark.x}, y: ${landmark.y}, z: ${landmark.z}`;
+			landmarks.forEach((landmark, index) => {
+				processedData.coordinates = `${index}, x: ${landmark.x}, y: ${landmark.y}, z: ${landmark.z}`;
 
-			dataToSend.push(processedData.coordinates);
+				dataToSend.push(processedData.coordinates);
 
-		})
-		console.log(dataToSend);
+			})
+			console.log(dataToSend);
+		}
 	}
 
 	const sendMessage = ()=>{
