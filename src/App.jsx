@@ -6,12 +6,9 @@ import models from "./models/Models";
 const OSC = require("osc-js")
 
 
-let selectedModel;
 let video, canvas, ctx, animation;
-let dataToSend = [];
+let model, modelKey, isFace;
 let message;
-
-let isFace, modelKey, normData;
 
 
 function App() {
@@ -36,30 +33,27 @@ function App() {
 	}, []);
 
 	const start = () => {
-		selectedModel = models[modelName];
+		model = models[modelName];
 
-		runDetection();
+		runDetection(model);
 
 		setIsDetecting(1);
 
 		canvas.classList.remove("hidden");
 	};
 
-	const runDetection = () => {
-		normData = [];
-
-		setData();
-
-		processData();
+	const runDetection = (model) => {
+		const rawData = setData(model.model);
+		const data    = processData(rawData);
 
 		/* TODO: Send data through OSC
 		Example:
 		const message = new OSC.Message("/model/landmark/coordinates", value);
 		osc.send(message);
 		*/
-		sendMessage();
+		sendMessage(data);
 
-		displayData();
+		displayData(rawData);
 
 		// animation = window.requestAnimationFrame(runDetection);
 	}
@@ -67,17 +61,19 @@ function App() {
 	const setData = () => {
 		const startTimeMs = performance.now();
 		let lastVideoTime = -1;
+		let rawData;
 
 		if (lastVideoTime !== video.currentTime) {
-			selectedModel.data = selectedModel.model.detectForVideo(video, startTimeMs);
-			lastVideoTime      = video.currentTime;
+			rawData       = model.model.detectForVideo(video, startTimeMs);
+			lastVideoTime = video.currentTime;
 		}
+		return rawData;
 	};
 
-	const processData = () => {
-		const rawData = selectedModel.data;
-		isFace        = "faceLandmarks" in rawData;
-		modelKey      = isFace ? "faceLandmarks" : "landmarks";
+	const processData = (rawData) => {
+		let normData = [];
+		isFace       = "faceLandmarks" in rawData;
+		modelKey     = isFace ? "faceLandmarks" : "landmarks";
 
 		rawData[modelKey].forEach((landmarks, i) => {
 			landmarks.forEach((coordinates, j) => {
@@ -85,7 +81,7 @@ function App() {
 					[modelName]: {},
 				};
 
-				const landmarkName = isFace ? "face" : selectedModel.namedLandmarks[j];
+				const landmarkName = isFace ? "face" : model.namedLandmarks[j];
 				const data         = {
 					[landmarkName]: {
 						"x": coordinates.x,
@@ -95,7 +91,8 @@ function App() {
 				}
 
 				if (modelName === "hand") {
-					let handName                      = rawData.handedness[i][0].categoryName.toLowerCase();
+					let handName                      = rawData.handedness[i][0].categoryName
+							.toLowerCase();
 					landmarkData[modelName][handName] = data;
 				}
 				else {
@@ -104,6 +101,7 @@ function App() {
 				normData.push(landmarkData);
 			})
 		})
+		return normData;
 	}
 
 	const sendMessage = () => {
@@ -115,19 +113,19 @@ function App() {
 	}
 
 
-	const displayData = () => {
+	const displayData = (data) => {
 		ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-		for (const landmark of selectedModel.data[modelKey]) {
-			for (let i = 0; i < selectedModel.categories.length; i++) {
-				const category     = selectedModel.categories[i];
+		for (const landmark of data[modelKey]) {
+			for (let i = 0; i < model.categories.length; i++) {
+				const category     = model.categories[i];
 				const landmarkName = category.name;
 				const color        = category.color;
 				const lineWidth    = category.lineWidth;
 
 				models.draw.drawConnectors(
 						landmark,
-						selectedModel.landmarks[landmarkName],
+						model.landmarks[landmarkName],
 						{
 							color    : color,
 							lineWidth: lineWidth,
