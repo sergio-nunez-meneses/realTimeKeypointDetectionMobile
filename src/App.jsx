@@ -43,7 +43,7 @@ function App() {
 	};
 
 	const runDetection = (model) => {
-		const rawData = setData(model.model);
+		const rawData = getData(model.model);
 		const data    = processData(rawData);
 
 		/* TODO: Send data through OSC
@@ -58,7 +58,7 @@ function App() {
 		// animation = window.requestAnimationFrame(runDetection);
 	}
 
-	const setData = () => {
+	const getData = () => {
 		const startTimeMs = performance.now();
 		let lastVideoTime = -1;
 		let rawData;
