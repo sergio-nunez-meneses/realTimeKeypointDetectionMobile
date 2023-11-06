@@ -105,38 +105,30 @@ function App() {
 	}
 
 	const sendMessage = () => {
-		for (let i = 0; i < dataToSend.length; i++) {
-			message = new OSC.Message("/model/landmark/coordinates", dataToSend[i]);
-			osc.send(message);
-		}
-		dataToSend = [];
+		// for (let i = 0; i < dataToSend.length; i++) {
+		// 	message = new OSC.Message("/model/landmark/coordinates", dataToSend[i]);
+		// 	osc.send(message);
+		// }
+		// dataToSend = [];
 	}
 
 
 	const displayData = (data) => {
 		ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-		for (const landmark of data[modelKey]) {
-			for (let i = 0; i < model.categories.length; i++) {
-				const category     = model.categories[i];
-				const landmarkName = category.name;
-				const color        = category.color;
-				const lineWidth    = category.lineWidth;
-
+		data[modelKey].forEach(landmark => {
+			model.connectorInfo.forEach(connector => {
 				models.draw.drawConnectors(
 						landmark,
-						model.landmarks[landmarkName],
-						{
-							color    : color,
-							lineWidth: lineWidth,
-						},
+						model.landmarks[connector.name],
+						connector.style,
 				);
 
 				if (!isFace) {
 					models.draw.drawLandmarks(landmark);
 				}
-			}
-		}
+			})
+		})
 	};
 
 	const stop = () => {
