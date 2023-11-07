@@ -64,33 +64,43 @@ function App() {
 	};
 
 	const processData = (rawData) => {
-		let normData = [];
-		isFace       = "faceLandmarks" in rawData;
-		modelKey     = isFace ? "faceLandmarks" : "landmarks";
+		const landmarkNameIndexes = Object.entries(model.namedLandmarks);
+		let normData              = [];
+		isFace                    = "faceLandmarks" in rawData;
+		modelKey                  = isFace ? "faceLandmarks" : "landmarks";
+
 
 		rawData[modelKey].forEach((landmarks, i) => {
 			landmarks.forEach((coordinates, j) => {
-				let modelNameKey, handName;
+				let modelNameKey, handName, landmarkData, landmarkName;
 
 				if (modelName === "hand") {
 					handName = rawData.handedness[i][0].categoryName.toLowerCase();
 				}
 				modelNameKey = modelName === "hand" ? `${handName}_${modelName}` : modelName;
 
-				const landmarkData = {
-					[modelNameKey]: {},
-				};
+				const landmarkInfo = landmarkNameIndexes.filter(
+						nameIndexes => nameIndexes[1].includes(j));
 
-				// TODO: Use j to set face landmarks' names
-				const landmarkName         = isFace ? "face" : model.namedLandmarks[j];
-				landmarkData[modelNameKey] = {
-					[landmarkName]: {
-						"x": coordinates.x,
-						"y": coordinates.y,
-						"z": coordinates.z,
-					},
+				if (landmarkInfo.length > 0) {
+					landmarkData = {
+						[modelNameKey]: {},
+					};
+
+					landmarkInfo.forEach(info => {
+						const name                 = info[0];
+						const index                = info[1].indexOf(j);
+						landmarkName               = isFace ? `${name}_${index}` : name;
+						landmarkData[modelNameKey] = {
+							[landmarkName]: {
+								"x": coordinates.x,
+								"y": coordinates.y,
+								"z": coordinates.z,
+							},
+						}
+					});
+					normData.push(landmarkData);
 				}
-				normData.push(landmarkData);
 			})
 		})
 		return normData;
