@@ -2,13 +2,11 @@ import {DrawingUtils} from "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision
 import React, {useEffect, useState} from "react";
 import Webcam from "react-webcam";
 import models from "./models/Models";
-
-const OSC = require("osc-js")
+import OSC from "osc-js";
 
 
 let video, canvas, ctx, animation;
 let model, modelKey, isFace;
-let message;
 
 
 function App() {
@@ -46,12 +44,7 @@ function App() {
 		const rawData = getData(model.model);
 		const data    = processData(rawData);
 
-		/* TODO: Send data through OSC
-		Example:
-		const message = new OSC.Message("/model/landmark/coordinates", value);
-		osc.send(message);
-		*/
-		sendMessage(data);
+		sendData(data);
 
 		displayData(rawData);
 
@@ -104,12 +97,30 @@ function App() {
 		return normData;
 	}
 
-	const sendMessage = () => {
-		// for (let i = 0; i < dataToSend.length; i++) {
-		// 	message = new OSC.Message("/model/landmark/coordinates", dataToSend[i]);
-		// 	osc.send(message);
-		// }
-		// dataToSend = [];
+	const sendData = (data) => {
+		data.forEach(obj => {
+			const landmark = obj[modelName];
+			let address    = `/${modelName}`;
+			let values;
+
+			if (modelName === "hand") {
+				const handName     = Object.keys(obj[modelName]);
+				const landmarkName = Object.keys(landmark[handName]);
+				values             = landmark[handName][landmarkName];
+				address += `/${handName}/${landmarkName}`;
+			}
+			else {
+				const landmarkName = Object.keys(obj[modelName]);
+				values             = landmark[landmarkName];
+				address += `/${landmarkName}`;
+			}
+
+			const coordinates = Object.values(values).join(", ");
+			address += "/xyz";
+
+			const message = new OSC.Message(address, coordinates);
+			osc.send(message);
+		})
 	}
 
 
