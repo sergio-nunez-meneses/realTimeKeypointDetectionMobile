@@ -48,7 +48,7 @@ function App() {
 
 		displayData(rawData);
 
-		// animation = window.requestAnimationFrame(runDetection);
+		animation = window.requestAnimationFrame(runDetection);
 	}
 
 	const getData = () => {
