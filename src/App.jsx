@@ -70,26 +70,25 @@ function App() {
 
 		rawData[modelKey].forEach((landmarks, i) => {
 			landmarks.forEach((coordinates, j) => {
+				let modelNameKey, handName;
+
+				if (modelName === "hand") {
+					handName = rawData.handedness[i][0].categoryName.toLowerCase();
+				}
+				modelNameKey = modelName === "hand" ? `${handName}_${modelName}` : modelName;
+
 				const landmarkData = {
-					[modelName]: {},
+					[modelNameKey]: {},
 				};
 
-				const landmarkName = isFace ? "face" : model.namedLandmarks[j];
-				const data         = {
+				// TODO: Use j to set face landmarks' names
+				const landmarkName         = isFace ? "face" : model.namedLandmarks[j];
+				landmarkData[modelNameKey] = {
 					[landmarkName]: {
 						"x": coordinates.x,
 						"y": coordinates.y,
 						"z": coordinates.z,
 					},
-				}
-
-				if (modelName === "hand") {
-					let handName                      = rawData.handedness[i][0].categoryName
-							.toLowerCase();
-					landmarkData[modelName][handName] = data;
-				}
-				else {
-					landmarkData[modelName] = data
 				}
 				normData.push(landmarkData);
 			})
