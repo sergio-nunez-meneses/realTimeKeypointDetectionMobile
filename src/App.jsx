@@ -98,26 +98,13 @@ function App() {
 
 	const sendData = (data) => {
 		data.forEach(obj => {
-			const landmark = obj[modelName];
-			let address    = `/${modelName}`;
-			let values;
-
-			if (modelName === "hand") {
-				const handName     = Object.keys(obj[modelName]);
-				const landmarkName = Object.keys(landmark[handName]);
-				values             = landmark[handName][landmarkName];
-				address += `/${handName}/${landmarkName}`;
-			}
-			else {
-				const landmarkName = Object.keys(obj[modelName]);
-				values             = landmark[landmarkName];
-				address += `/${landmarkName}`;
-			}
-
-			const coordinates = Object.values(values).join(", ");
-			address += "/xyz";
-
-			const message = new OSC.Message(address, coordinates);
+			const objKey       = Object.keys(obj)[0];
+			const modelNameKey = objKey.includes("hand") ? objKey.substring(0) : modelName;
+			const landmark     = obj[modelNameKey];
+			const landmarkName = Object.keys(landmark);
+			const coordinates  = Object.values(landmark[landmarkName]).join(", ");
+			const address      = `/${modelNameKey}/${landmarkName}/xyz`;
+			const message      = new OSC.Message(address, coordinates);
 			osc.send(message);
 		})
 	}
