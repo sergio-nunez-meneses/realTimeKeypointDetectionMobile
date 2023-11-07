@@ -13,7 +13,7 @@ function App() {
 	const [isDetecting, setIsDetecting] = useState(0);
 	const [modelName, setModelName]     = useState("face");
 
-	const osc = new OSC();
+	const osc = new OSC({plugin: new OSC.WebsocketClientPlugin()});
 	osc.open();
 
 	useEffect(() => {
