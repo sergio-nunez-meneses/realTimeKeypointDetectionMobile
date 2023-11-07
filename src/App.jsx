@@ -13,7 +13,7 @@ let message;
 function App() {
 	const [isDetecting, setIsDetecting] = useState(0);
 	const [modelName, setModelName]     = useState("face");
-	const osc= new OSC({plugin: new OSC.WebsocketClientPlugin()});
+	const osc                           = new OSC({plugin: new OSC.WebsocketClientPlugin()});
 	osc.open();
 
 	useEffect(() => {
@@ -94,17 +94,17 @@ function App() {
 
 	const processPoseData = () => {
 		const unprocessedData = selectedModel.data;
-		if (unprocessedData.landmarks[0] !== undefined){
+		if (unprocessedData.landmarks[0] !== undefined) {
 
-		const landmarks       = unprocessedData.landmarks[0];
-		for (let i = 0; i < landmarks.length; i++) {
-			let processedData = {}
-			processedData     = `${selectedModel.landmarkName[i]} x: ${landmarks[i].x}, y: ${landmarks[i].y}, z: ${landmarks[i].z}`;
+			const landmarks = unprocessedData.landmarks[0];
+			for (let i = 0; i < landmarks.length; i++) {
+				let processedData = {}
+				processedData     = `${selectedModel.landmarkName[i]} x: ${landmarks[i].x}, y: ${landmarks[i].y}, z: ${landmarks[i].z}`;
 
-			dataToSend.push(processedData);
-		}
+				dataToSend.push(processedData);
+			}
 
-		console.log(unprocessedData);
+			console.log(unprocessedData);
 		}
 	};
 
@@ -183,26 +183,32 @@ function App() {
 
 	return (
 			<div className="App">
-				<div>
-					<label>Model :</label>
-					<select onChange={(e) => {
-						setModelName(e.target.value);
-					}} value={modelName}>
-						<option value={"pose"}>Pose</option>
-						<option value={"face"}>Face</option>
-						<option value={"hand"}>Hand</option>
-					</select>
+
+				<div className="modal">
+					<div className="model">
+						<label>Model :</label>
+						<select onChange={(e) => {
+							setModelName(e.target.value);
+						}} value={modelName}>
+							<option value={"pose"}>Pose</option>
+							<option value={"face"}>Face</option>
+							<option value={"hand"}>Hand</option>
+						</select>
+					</div>
+				</div>
+
+
+				<div className="webcam_container">
+					<Webcam id="video"/>
+					<canvas id="render" className="hidden canvas"/>
 				</div>
 
 				{/* TODO: Add containers based on the element's function */}
-				<button onClick={!isDetecting ? start : stop}>
-					{!isDetecting ? "Start" : "Stop"} detection
-				</button>
-
-				<Webcam id="video"/>
-				<canvas id="render" className="hidden canvas"/>
-
-				{/* <button id="send" onClick={testMessage}>Send</button> */}
+				<div className="button">
+					<button onClick={!isDetecting ? start : stop}>
+						{!isDetecting ? "Start" : "Stop"} detection
+					</button>
+				</div>
 			</div>
 	);
 }
