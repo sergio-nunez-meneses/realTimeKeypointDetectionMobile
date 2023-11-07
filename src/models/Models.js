@@ -92,14 +92,16 @@ const models = {
 	pose: {
 		model         : poseModel,
 		landmarks     : poseLandmarks,
-		namedLandmarks: [
-			"nose", "left_eye(inner)", "left_eye", "left_eye(outer)", "right_eye(inner)", "right_eye",
-			"right_eye(outer)", "left_ear", "right_ear", "mouth(left)", "mouth(right)", "left_shoulder",
-			"right_shoulder", "left_elbow", "right_elbow", "left_wrist", "right_wrist", "left_pinky",
-			"right_pinky", "left_index", "right_index", "left_thumb", "right_thumb", "left_hip",
-			"right_hip", "left_knee", "right_knee", "left_ankle", "right_ankle", "left_heel",
-			"right_heel", "left_foot_index", "right_foot_index",
-		],
+		namedLandmarks: {
+			nose           : [0], left_eye_inner: [1], left_eye: [2], left_eye_outer: [3],
+			right_eye_inner: [4], right_eye: [5], right_eye_outer: [6], left_ear: [7], right_ear: [8],
+			mouth_left     : [9], mouth_right: [10], left_shoulder: [11], right_shoulder: [12],
+			left_elbow     : [13], right_elbow: [14], left_wrist: [15], right_wrist: [16],
+			left_pinky     : [17], right_pinky: [18], left_index: [19], right_index: [20],
+			left_thumb     : [21], right_thumb: [22], left_hip: [23], right_hip: [24],
+			left_knee      : [25], right_knee: [26], left_ankle: [27], right_ankle: [28],
+			left_heel      : [29], right_heel: [30], left_foot_index: [31], right_foot_index: [32],
+		},
 		connectorInfo : [
 			{
 				name : "POSE_CONNECTIONS",
@@ -113,13 +115,14 @@ const models = {
 	hand: {
 		model         : handModel,
 		landmarks     : handLandmarks,
-		namedLandmarks: [
-			"wrist", "thumb_cmc", "thumb_mcp", "thumb_ip", "thumb_tip", "index_finger_mcp",
-			"index_finger_pip", "index_finger_dip", "index_finger_tip", "middle_finger_mcp",
-			"middle_finger_pip", "middle_finger_dip", "middle_finger_tip", "ring_finger_mcp",
-			"ring_finger_pip", "ring_finger_dip", "ring_finger_tip", "pinky_mcp", "pinky_pip",
-			"pinky_dip", "pinky_tip",
-		],
+		namedLandmarks: {
+			wrist            : [0], thumb_cmc: [1], thumb_mcp: [2], thumb_ip: [3], thumb_tip: [4],
+			index_finger_mcp : [5], index_finger_pip: [6], index_finger_dip: [7], index_finger_tip: [8],
+			middle_finger_mcp: [9], middle_finger_pip: [10], middle_finger_dip: [11],
+			middle_finger_tip: [12], ring_finger_mcp: [13], ring_finger_pip: [14], ring_finger_dip: [15],
+			ring_finger_tip  : [16], pinky_mcp: [17], pinky_pip: [18], pinky_dip: [19],
+			pinky_tip        : [20],
+		},
 		connectorInfo : [
 			{
 				name : "HAND_CONNECTIONS",
