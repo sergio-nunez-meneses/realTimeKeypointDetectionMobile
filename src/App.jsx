@@ -42,11 +42,16 @@ function App() {
 
 	const runDetection = (model) => {
 		const rawData = getData(model.model);
-		const data    = processData(rawData);
 
-		sendData(data);
+		if (rawData[modelKey].length > 0) {
+			const data = processData(rawData);
 
-		displayData(rawData);
+			sendData(data);
+			displayData(rawData);
+		}
+		else {
+			ctx.clearRect(0, 0, canvas.width, canvas.height); // Keep landmarks off the canvas
+		}
 
 		animation = window.requestAnimationFrame(runDetection);
 	}
@@ -58,6 +63,8 @@ function App() {
 
 		if (lastVideoTime !== video.currentTime) {
 			rawData       = model.model.detectForVideo(video, startTimeMs);
+			isFace        = "faceLandmarks" in rawData;
+			modelKey      = isFace ? "faceLandmarks" : "landmarks";
 			lastVideoTime = video.currentTime;
 		}
 		return rawData;
@@ -66,9 +73,6 @@ function App() {
 	const processData = (rawData) => {
 		const landmarkNameIndexes = Object.entries(model.namedLandmarks);
 		let normData              = [];
-		isFace                    = "faceLandmarks" in rawData;
-		modelKey                  = isFace ? "faceLandmarks" : "landmarks";
-
 
 		rawData[modelKey].forEach((landmarks, i) => {
 			landmarks.forEach((coordinates, j) => {
