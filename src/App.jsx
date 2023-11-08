@@ -235,10 +235,10 @@ function App() {
 						     xmlns="http://www.w3.org/2000/svg">
 							<line y1="-3" x2="41.5404" y2="-3"
 							      transform="matrix(0.829259 0.558864 -0.829259 0.558864 0 4)" stroke="black"
-							      stroke-width="6"/>
+							      strokeWidth="6"/>
 							<line y1="-3" x2="41.5404" y2="-3"
 							      transform="matrix(0.829259 -0.558864 0.829259 0.558864 35.5522 28)"
-							      stroke="black" stroke-width="6"/>
+							      stroke="black" strokeWidth="6"/>
 						</svg>
 					</div>
 				</div>
