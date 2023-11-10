@@ -5,9 +5,9 @@ body {
 
 }
 
+
 .App {
     position: relative;
-    height: 100vmax;
     width: 100%;
     display: flex;
     flex-direction: column;
@@ -105,12 +105,9 @@ body {
 
 }
 
-.model_container{
 
-}
-
-select{
-    width: 50px;
+select {
+    width: 70px;
     height: 20px;
     background-color: white;
     border: none;
@@ -123,15 +120,27 @@ select{
     text-align: center;
 }
 
-.webcam_container {
-    position: relative;
-    height: 100%;
-    width: 100%;
+.port_container input {
+    width: 50px;
+    height: 20px;
+    background-color: white;
+    border: none;
+    border-radius: 5px;
+    font-weight: bolder;
+    margin-left: 5px;
+    text-align: center;
 }
 
-.webcam_container video{
-    height: 100%;
-    transform: translateX(-20%);
+.landmarks_container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.landmarks {
+    display: flex;
+    flex-flow: row wrap;
+    gap: 7px;
 }
 
 .canvas {
@@ -201,4 +210,21 @@ select{
 
 .flex {
     display: flex;
+}
+
+
+@media screen and (min-width: 800px ) and (max-width: 950px) {
+    body{
+        height: 100%;
+        width: 100%;
+    }
+    .App {
+        height: 100vh;
+    }
+
+    .infos {
+        left: 0;
+        width: 40%;
+        height: 8%;
+    }
 }

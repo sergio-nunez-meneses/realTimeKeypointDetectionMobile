@@ -5,7 +5,7 @@ import models from "./models/Models";
 import OSC from "osc-js";
 
 
-let video, canvas,modal, ctx, animation;
+let video, canvas, modal, ctx, animation;
 let model, modelKey, isFace;
 
 
@@ -13,7 +13,8 @@ function App() {
 	const [isDetecting, setIsDetecting] = useState(false);
 	const [modelName, setModelName]     = useState("face");
 	const [showModal, setShowModal]     = useState(false);
-	const osc = new OSC({plugin: new OSC.WebsocketClientPlugin()});
+	const size                          = useWindowSize();
+	const osc                           = new OSC({plugin: new OSC.WebsocketClientPlugin()});
 	osc.open();
 
 	useEffect(() => {
@@ -21,10 +22,17 @@ function App() {
 		video.addEventListener("loadeddata", () => {
 			modal             = document.getElementById("modal");
 			canvas            = document.getElementById("render");
-			canvas.width      = video.videoWidth;
-			canvas.height     = video.videoHeight;
+			canvas.width      = video.width;
+			canvas.height     = video.height;
 			canvas.style.left = video.offsetLeft + "px";
 			canvas.style.top  = video.offsetTop + "px";
+
+			window.addEventListener("resize", () => {
+				canvas.width      = video.width;
+				canvas.height     = video.height;
+				canvas.style.left = video.offsetLeft + "px";
+				canvas.style.top  = video.offsetTop + "px";
+			})
 
 			ctx         = canvas.getContext("2d");
 			models.draw = new DrawingUtils(ctx);
@@ -36,7 +44,7 @@ function App() {
 		modal.classList.remove("flex");
 		modal.classList.add("hidden");
 		setShowModal(false);
-		selectedModel = models[modelName];
+
 
 		runDetection(model);
 
@@ -51,7 +59,7 @@ function App() {
 		if (rawData[modelKey].length > 0) {
 			const data = processData(rawData);
 
-			sendData(data);
+			// sendData(data);
 			displayData(rawData);
 		}
 		else {
@@ -177,6 +185,41 @@ function App() {
 			return ("#23E95A");
 		}
 	};
+	const isLandscape   = size.height <= size.width;
+	const ratio         = isLandscape ? size.width / size.height : size.height /
+			size.width;
+
+	// Hook
+	function useWindowSize() {
+		// Initialize state with undefined width/height so server and client renders match
+		// Learn more here: https://joshwcomeau.com/react/the-perils-of-rehydration/
+		const [windowSize, setWindowSize] = useState({
+			width : undefined,
+			height: undefined,
+		});
+
+		useEffect(() => {
+			// Handler to call on window resize
+			function handleResize() {
+				// Set window width/height to state
+				setWindowSize({
+					width : window.innerWidth,
+					height: window.innerHeight,
+				});
+			}
+
+			// Add event listener
+			window.addEventListener("resize", handleResize);
+
+			// Call handler right away so state gets updated with initial window size
+			handleResize();
+
+			// Remove event listener on cleanup
+			return () => window.removeEventListener("resize", handleResize);
+		}, []); // Empty array ensures that effect is only run on mount
+
+		return windowSize;
+	}
 
 
 	return (
@@ -197,6 +240,27 @@ function App() {
 							<option value={"hand"}>Hand</option>
 						</select>
 					</div>
+					<div className="port_container">
+						<label>UDP Port:</label>
+						<input value="8000"/>
+					</div>
+					<div className="landmarks_container">
+						<p>Landmarks</p>
+						<div className="landmarks">
+							<div>
+								<input type="checkbox"/>
+								<label>Right Eye</label>
+							</div>
+							<div>
+								<input type="checkbox"/>
+								<label>Left Eye</label>
+							</div>
+							<div>
+								<input type="checkbox"/>
+								<label>Lips</label>
+							</div>
+						</div>
+					</div>
 					<div className="warning">
 						<p>Press the button below to start detection. Press it again to stop the detection.</p>
 						<svg width="70" height="28" viewBox="0 0 70 28" fill="none"
@@ -213,7 +277,13 @@ function App() {
 
 
 				<div className="webcam_container">
-					<Webcam id="video" audio={false} />
+					<Webcam
+							id="video"
+							height={size.height}
+							width={size.width}
+							videoConstraints={{facingMode: 'user', aspectRatio: ratio}}
+							audio={false}
+							ref={camera => window.camera = camera}/>
 					<canvas id="render" className="hidden canvas"/>
 				</div>
 
