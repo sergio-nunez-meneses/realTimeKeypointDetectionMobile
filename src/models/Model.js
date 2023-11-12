@@ -12,8 +12,7 @@ export default class Model {
 		this.draw      = new DrawingUtils(this.context);
 		this.model     = null;
 		this.modelName = null;
-		this.isFace    = null;
-		this.modelKey  = null;
+		this.modelKey  = null
 	}
 
 	setModel(name) {
@@ -161,8 +160,7 @@ export default class Model {
 
 		if (lastVideoTime !== this.video.currentTime) {
 			rawData       = this.model.model.detectForVideo(this.video, startTimeMs);
-			this.isFace   = "faceLandmarks" in rawData;
-			this.modelKey = this.isFace ? "faceLandmarks" : "landmarks";
+			this.modelKey = this.modelName === "face" ? "faceLandmarks" : "landmarks";
 			lastVideoTime = this.video.currentTime;
 		}
 		return rawData;
@@ -233,7 +231,7 @@ export default class Model {
 						connector.style,
 				);
 
-				if (!this.isFace) {
+				if (this.modelName !== "face") {
 					this.draw.drawLandmarks(landmark);
 				}
 			})
