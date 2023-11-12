@@ -221,4 +221,22 @@ export default class Model {
 			osc.send(message);
 		})
 	}
+
+	displayData(data) {
+		this.context.clearRect(0, 0, this.context.canvas.width, this.context.canvas.height);
+
+		data[this.modelKey].forEach(landmark => {
+			this.model.connectorInfo.forEach(connector => {
+				this.draw.drawConnectors(
+						landmark,
+						this.model.landmarks[connector.name],
+						connector.style,
+				);
+
+				if (!this.isFace) {
+					this.draw.drawLandmarks(landmark);
+				}
+			})
+		})
+	};
 }
