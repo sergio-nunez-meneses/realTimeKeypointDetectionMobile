@@ -2,6 +2,7 @@ import {DrawingUtils} from "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision
 import {faceLandmarks, faceModel} from "./faceLandmarker";
 import {poseLandmarks, poseModel} from "./poseLandmarker";
 import {handLandmarks, handModel} from "./handLandmarker";
+import OSC from "osc-js"; // TODO: Wrap OSC class
 
 
 export default class Model {
@@ -205,5 +206,19 @@ export default class Model {
 			})
 		})
 		return normData;
+	}
+
+	sendData(data, osc) {
+		data.forEach(obj => {
+			const objKey       = Object.keys(obj)[0];
+			const modelNameKey = objKey.includes("hand") ? objKey.substring(0) :
+					this.modelName;
+			const landmark     = obj[modelNameKey];
+			const landmarkName = Object.keys(landmark);
+			const coordinates  = Object.values(landmark[landmarkName]).join(", ");
+			const address      = `/${modelNameKey}/${landmarkName}/xyz`;
+			const message      = new OSC.Message(address, coordinates);
+			osc.send(message);
+		})
 	}
 }
