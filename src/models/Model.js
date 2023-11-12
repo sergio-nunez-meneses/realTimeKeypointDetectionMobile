@@ -152,4 +152,18 @@ export default class Model {
 		this.modelName  = name;
 		this.model      = modelInfo[this.modelName];
 	}
+
+	getData() {
+		const startTimeMs = performance.now();
+		let lastVideoTime = -1;
+		let rawData;
+
+		if (lastVideoTime !== this.video.currentTime) {
+			rawData       = this.model.model.detectForVideo(this.video, startTimeMs);
+			this.isFace   = "faceLandmarks" in rawData;
+			this.modelKey = this.isFace ? "faceLandmarks" : "landmarks";
+			lastVideoTime = this.video.currentTime;
+		}
+		return rawData;
+	}
 }
