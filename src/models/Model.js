@@ -166,4 +166,44 @@ export default class Model {
 		}
 		return rawData;
 	}
+
+	processData(data) {
+		const landmarkNameIndexes = Object.entries(this.model.namedLandmarks);
+		let normData              = [];
+
+		data[this.modelKey].forEach((landmarks, i) => {
+			landmarks.forEach((coordinates, j) => {
+				let modelNameKey, handName, landmarkData, landmarkName;
+
+				if (this.modelName === "hand") {
+					handName = data.handedness[i][0].categoryName.toLowerCase();
+				}
+				modelNameKey = this.modelName === "hand" ? `${handName}_${this.modelName}` : this.modelName;
+
+				const landmarkInfo = landmarkNameIndexes.filter(
+						nameIndexes => nameIndexes[1].includes(j));
+
+				if (landmarkInfo.length > 0) {
+					landmarkData = {
+						[modelNameKey]: {},
+					};
+
+					landmarkInfo.forEach(info => {
+						const name                 = info[0];
+						const faceLandmarkIndex    = info[1].indexOf(j);
+						landmarkName               = this.isFace ? `${name}_${faceLandmarkIndex}` : name;
+						landmarkData[modelNameKey] = {
+							[landmarkName]: {
+								"x": coordinates.x,
+								"y": coordinates.y,
+								"z": coordinates.z,
+							},
+						}
+					});
+					normData.push(landmarkData);
+				}
+			})
+		})
+		return normData;
+	}
 }
