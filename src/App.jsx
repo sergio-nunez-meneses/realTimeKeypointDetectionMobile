@@ -1,7 +1,7 @@
 import React, {useEffect, useState} from "react";
 import Webcam from "react-webcam";
 import Model from "./models/Model";
-import OSC from "osc-js";
+import Osc from "./osc/Osc";
 
 
 let video, canvas, ctx, animation;
@@ -12,8 +12,9 @@ function App() {
 	const [isDetecting, setIsDetecting] = useState(0);
 	const [modelName, setModelName]     = useState("face");
 
-	const osc = new OSC({plugin: new OSC.WebsocketClientPlugin()});
-	osc.open();
+	// TODO: Replace with user data
+	const userPort = 8000;
+	const osc      = new Osc(userPort);
 
 	useEffect(() => {
 		video = document.getElementById("video");
