@@ -1,12 +1,11 @@
-import {DrawingUtils} from "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@latest";
 import React, {useEffect, useState} from "react";
 import Webcam from "react-webcam";
-import models from "./models/Models";
-import OSC from "osc-js";
+import Model from "./model/Model";
+import Osc from "./osc/Osc";
 
 
 let video, canvas, modal, ctx, animation;
-let model, modelKey, isFace;
+let model;
 
 
 function App() {
@@ -14,7 +13,10 @@ function App() {
 	const [modelName, setModelName]     = useState("face");
 	const [showModal, setShowModal]     = useState(false);
 	const size                          = useWindowSize();
-	const osc                           = new OSC({plugin: new OSC.WebsocketClientPlugin()});
+
+	// TODO: Replace with user data
+	const userPort = 8000;
+	const osc      = new Osc(userPort);
 	osc.open();
 
 	useEffect(() => {
@@ -34,126 +36,35 @@ function App() {
 				canvas.style.top  = video.offsetTop + "px";
 			})
 
-			ctx         = canvas.getContext("2d");
-			models.draw = new DrawingUtils(ctx);
+			ctx = canvas.getContext("2d");
+
+			model = new Model(video, ctx);
 		});
 	}, []);
 
 	const start = () => {
-		model = models[modelName];
+		model.setModel(modelName);
 		modal.classList.remove("flex");
 		modal.classList.add("hidden");
 		setShowModal(false);
 
 
-		runDetection(model);
+		runDetection();
 
 		setIsDetecting(true);
 
 		canvas.classList.remove("hidden");
 	};
 
-	const runDetection = (model) => {
-		const rawData = getData(model.model);
+	const runDetection = () => {
+		const rawData  = model.getData();
+		const normData = model.processData(rawData);
 
-		if (rawData[modelKey].length > 0) {
-			const data = processData(rawData);
-
-			// sendData(data);
-			displayData(rawData);
-		}
-		else {
-			ctx.clearRect(0, 0, canvas.width, canvas.height); // Keep landmarks off the canvas
-		}
+		model.setData(normData, osc);
+		model.displayData(rawData);
 
 		animation = window.requestAnimationFrame(runDetection);
 	}
-
-	const getData = () => {
-		const startTimeMs = performance.now();
-		let lastVideoTime = -1;
-		let rawData;
-
-		if (lastVideoTime !== video.currentTime) {
-			rawData       = model.model.detectForVideo(video, startTimeMs);
-			isFace        = "faceLandmarks" in rawData;
-			modelKey      = isFace ? "faceLandmarks" : "landmarks";
-			lastVideoTime = video.currentTime;
-		}
-		return rawData;
-	};
-
-	const processData = (rawData) => {
-		const landmarkNameIndexes = Object.entries(model.namedLandmarks);
-		let normData              = [];
-
-		rawData[modelKey].forEach((landmarks, i) => {
-			landmarks.forEach((coordinates, j) => {
-				let modelNameKey, handName, landmarkData, landmarkName;
-
-				if (modelName === "hand") {
-					handName = rawData.handedness[i][0].categoryName.toLowerCase();
-				}
-				modelNameKey = modelName === "hand" ? `${handName}_${modelName}` : modelName;
-
-				const landmarkInfo = landmarkNameIndexes.filter(
-						nameIndexes => nameIndexes[1].includes(j));
-
-				if (landmarkInfo.length > 0) {
-					landmarkData = {
-						[modelNameKey]: {},
-					};
-
-					landmarkInfo.forEach(info => {
-						const name                 = info[0];
-						const index                = info[1].indexOf(j);
-						landmarkName               = isFace ? `${name}_${index}` : name;
-						landmarkData[modelNameKey] = {
-							[landmarkName]: {
-								"x": coordinates.x,
-								"y": coordinates.y,
-								"z": coordinates.z,
-							},
-						}
-					});
-					normData.push(landmarkData);
-				}
-			})
-		})
-		return normData;
-	}
-
-	const sendData = (data) => {
-		data.forEach(obj => {
-			const objKey       = Object.keys(obj)[0];
-			const modelNameKey = objKey.includes("hand") ? objKey.substring(0) : modelName;
-			const landmark     = obj[modelNameKey];
-			const landmarkName = Object.keys(landmark);
-			const coordinates  = Object.values(landmark[landmarkName]).join(", ");
-			const address      = `/${modelNameKey}/${landmarkName}/xyz`;
-			const message      = new OSC.Message(address, coordinates);
-			osc.send(message);
-		})
-	}
-
-
-	const displayData = (data) => {
-		ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-		data[modelKey].forEach(landmark => {
-			model.connectorInfo.forEach(connector => {
-				models.draw.drawConnectors(
-						landmark,
-						model.landmarks[connector.name],
-						connector.style,
-				);
-
-				if (!isFace) {
-					models.draw.drawLandmarks(landmark);
-				}
-			})
-		})
-	};
 
 	const stop = () => {
 		canvas.classList.add("hidden");
