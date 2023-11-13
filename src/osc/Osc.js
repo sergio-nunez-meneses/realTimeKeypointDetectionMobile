@@ -8,6 +8,8 @@ export default class Osc {
 		this.osc.open();
 	}
 
+	// TODO: Add methods start and stop
+
 	sendData(address, value) {
 		const message = new OSC.Message(address, value);
 		this.osc.send(message);
