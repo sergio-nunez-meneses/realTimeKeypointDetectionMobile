@@ -214,7 +214,7 @@ export default class Model {
 			const landmarkName = Object.keys(landmark);
 			const coordinates  = Object.values(landmark[landmarkName]).join(", ");
 			const address      = `/${modelNameKey}/${landmarkName}/xyz`;
-			osc.send(address, coordinates);
+			osc.sendData(address, coordinates);
 		})
 	}
 
