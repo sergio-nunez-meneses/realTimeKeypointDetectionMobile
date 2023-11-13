@@ -1,6 +1,6 @@
 import React, {useEffect, useState} from "react";
 import Webcam from "react-webcam";
-import Model from "./models/Model";
+import Model from "./model/Model";
 import Osc from "./osc/Osc";
 
 
