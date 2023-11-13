@@ -206,7 +206,7 @@ export default class Model {
 		return normData;
 	}
 
-	sendData(data, osc) {
+	setData(data, osc) {
 		data.forEach(obj => {
 			const objKey       = Object.keys(obj)[0];
 			const modelNameKey = objKey.includes("hand") ? objKey.substring(0) :

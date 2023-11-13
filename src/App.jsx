@@ -44,7 +44,7 @@ function App() {
 		const rawData  = model.getData();
 		const normData = model.processData(rawData);
 
-		model.sendData(normData, osc);
+		model.setData(normData, osc);
 		model.displayData(rawData);
 
 		animation = window.requestAnimationFrame(runDetection);
