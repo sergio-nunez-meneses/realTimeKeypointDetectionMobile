@@ -7,6 +7,7 @@
     "@testing-library/jest-dom": "^5.17.0",
     "@testing-library/react": "^13.4.0",
     "@testing-library/user-event": "^13.5.0",
+    "axios": "^1.6.2",
     "jslib-html5-camera-photo": "^3.3.4",
     "osc": "2.4.2",
     "osc-js": "^2.4.0",
