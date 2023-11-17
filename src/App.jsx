@@ -17,7 +17,6 @@ function App() {
 	const [ipAddress, setIpAddress]     = useState()
 	const size                          = useWindowSize();
 
-	console.log(userPort)
 	// TODO: Replace with user data
 	const osc = new Osc(userPort);
 	// osc.open();
@@ -145,6 +144,30 @@ function App() {
 		}
 	}
 
+	// const updateUserPort = async (e) => {
+	// 	const newUserPort = parseFloat(e.target.value);
+	// 	setUserPort(newUserPort);
+	//
+	// 	try {
+	// 		const response = await fetch('http://localhost:8080/updateUserPort', {
+	// 			method: 'POST',
+	// 			headers: {
+	// 				'Content-Type': 'application/json',
+	// 			},
+	// 			body: JSON.stringify({ userPort: newUserPort }),
+	// 		});
+	//
+	// 		if (!response.ok) {
+	// 			throw new Error('Update failed');
+	// 		}
+	//
+	// 		const responseData = await response.json();
+	// 		console.log('Update successful. Server response:', responseData);
+	// 	} catch (error) {
+	// 		console.error('Error updating User Port', error);
+	// 	}
+	// };
+
 
 	return (
 			<div className="App">
@@ -166,9 +189,9 @@ function App() {
 					</div>
 					<div className="port_container">
 						<label>UDP Port:</label>
-						<input value={userPort} onChange={(e) => {
-							setUserPort(parseInt(e.target.value))
-						}}/>
+						<input value={userPort}
+						       // onChange={updateUserPort}
+						/>
 					</div>
 					<div className="landmarks_container">
 						<p>Landmarks</p>
