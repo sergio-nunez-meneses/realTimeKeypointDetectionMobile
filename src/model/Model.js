@@ -189,7 +189,8 @@ export default class Model {
 					landmarkInfo.forEach(info => {
 						const name                 = info[0];
 						const faceLandmarkIndex    = info[1].indexOf(j);
-						landmarkName               = this.isFace ? `${name}_${faceLandmarkIndex}` : name;
+						landmarkName               = this.modelName === "face" ? `${name}_${faceLandmarkIndex}`
+								: name;
 						landmarkData[modelNameKey] = {
 							[landmarkName]: {
 								"x": coordinates.x,
