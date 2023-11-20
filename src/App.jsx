@@ -6,15 +6,17 @@ import Osc from "./osc/Osc";
 
 let video, canvas, ctx, animation;
 let model;
+let osc;
 
 
 function App() {
 	const [isDetecting, setIsDetecting] = useState(0);
 	const [modelName, setModelName]     = useState("face");
+	const [isOscOn, setIsOscOn]         = useState(false);
 
-	// TODO: Replace with user data
-	const userPort = 8000;
-	const osc      = new Osc(userPort);
+	if (isOscOn) {
+		osc = new Osc();
+	}
 
 	useEffect(() => {
 		video = document.getElementById("video");
@@ -45,7 +47,10 @@ function App() {
 		const rawData  = model.getData();
 		const normData = model.processData(rawData);
 
-		model.setData(normData, osc);
+		if (isOscOn) {
+			model.setData(normData, osc);
+		}
+
 		model.displayData(rawData);
 
 		animation = window.requestAnimationFrame(runDetection);
@@ -53,6 +58,10 @@ function App() {
 
 	const stop = () => {
 		canvas.classList.add("hidden");
+
+		if (isOscOn) {
+			osc.stop();
+		}
 
 		cancelAnimationFrame(animation);
 		setIsDetecting(0);
@@ -72,14 +81,17 @@ function App() {
 				</div>
 
 				{/* TODO: Add containers based on the element's function */}
+				<label htmlFor={"toggle-osc"}>Send
+					<input type={"checkbox"} id={"toggle-osc"}
+					       onChange={e => setIsOscOn(e.target.checked)}/>
+				</label>
+
 				<button onClick={!isDetecting ? start : stop}>
 					{!isDetecting ? "Start" : "Stop"} detection
 				</button>
 
 				<Webcam id="video"/>
 				<canvas id="render" className="hidden canvas"/>
-
-				{/* <button id="send" onClick={testMessage}>Send</button> */}
 			</div>
 	);
 }
