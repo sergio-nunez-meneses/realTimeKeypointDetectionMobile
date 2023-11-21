@@ -14,7 +14,7 @@ function App() {
 	const [modelName, setModelName]     = useState("face");
 	const [isOscOn, setIsOscOn]         = useState(false);
 
-	if (isOscOn) {
+	if (isOscOn && !osc) {
 		osc = new Osc();
 	}
 
@@ -44,11 +44,11 @@ function App() {
 	};
 
 	const runDetection = () => {
-		const rawData  = model.getData();
-		const normData = model.processData(rawData);
+		const rawData = model.getData();
 
 		if (isOscOn) {
-			model.setData(normData, osc);
+			const normData = model.processData(rawData);
+			model.sendData(normData, osc);
 		}
 
 		model.displayData(rawData);
@@ -59,8 +59,9 @@ function App() {
 	const stop = () => {
 		canvas.classList.add("hidden");
 
-		if (isOscOn) {
+		if (isOscOn && osc) {
 			osc.stop();
+			osc = undefined;
 		}
 
 		cancelAnimationFrame(animation);
@@ -82,7 +83,7 @@ function App() {
 
 				{/* TODO: Add containers based on the element's function */}
 				<label htmlFor={"toggle-osc"}>Send
-					<input type={"checkbox"} id={"toggle-osc"}
+					<input type={"checkbox"} name={"toggle-osc"} id={"toggle-osc"}
 					       onChange={e => setIsOscOn(e.target.checked)}/>
 				</label>
 
