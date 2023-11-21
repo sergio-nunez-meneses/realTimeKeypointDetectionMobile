@@ -11,7 +11,7 @@ export default class Model {
 		this.draw      = new DrawingUtils(this.context);
 		this.model     = null;
 		this.modelName = null;
-		this.modelKey  = null
+		this.modelKey  = null;
 	}
 
 	setModel(name) {
@@ -171,32 +171,28 @@ export default class Model {
 
 		data[this.modelKey].forEach((landmarks, i) => {
 			landmarks.forEach((coordinates, j) => {
-				let modelNameKey, handName, landmarkData, landmarkName;
+				let handName;
 
 				if (this.modelName === "hand") {
 					handName = data.handedness[i][0].categoryName.toLowerCase();
 				}
-				modelNameKey = this.modelName === "hand" ? `${handName}_${this.modelName}` : this.modelName;
+				let modelNameKey = this.modelName === "hand" ? `${handName}_${this.modelName}`
+						: this.modelName;
 
 				const landmarkInfo = landmarkNameIndexes.filter(
 						nameIndexes => nameIndexes[1].includes(j));
 
 				if (landmarkInfo.length > 0) {
-					landmarkData = {
-						[modelNameKey]: {},
-					};
+					const landmarkData = {};
 
 					landmarkInfo.forEach(info => {
-						const name                 = info[0];
-						const faceLandmarkIndex    = info[1].indexOf(j);
-						landmarkName               = this.isFace ? `${name}_${faceLandmarkIndex}` : name;
-						landmarkData[modelNameKey] = {
-							[landmarkName]: {
-								"x": coordinates.x,
-								"y": coordinates.y,
-								"z": coordinates.z,
-							},
-						}
+						const name              = info[0];
+						const faceLandmarkIndex = info[1].indexOf(j);
+						const landmarkName      = this.modelName === "face" ?
+								`${name}_${faceLandmarkIndex}` : name;
+						landmarkData["address"] = `/${modelNameKey}/${landmarkName}/xyz`;
+						landmarkData["value"]   = [coordinates.x, coordinates.y, coordinates.z].join(", ");
+
 					});
 					normData.push(landmarkData);
 				}
@@ -205,16 +201,9 @@ export default class Model {
 		return normData;
 	}
 
-	setData(data, osc) {
+	sendData(data, osc) {
 		data.forEach(obj => {
-			const objKey       = Object.keys(obj)[0];
-			const modelNameKey = objKey.includes("hand") ? objKey.substring(0) :
-					this.modelName;
-			const landmark     = obj[modelNameKey];
-			const landmarkName = Object.keys(landmark);
-			const coordinates  = Object.values(landmark[landmarkName]).join(", ");
-			const address      = `/${modelNameKey}/${landmarkName}/xyz`;
-			osc.sendData(address, coordinates);
+			osc.sendMessage(obj.address, obj.value);
 		})
 	}
 

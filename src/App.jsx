@@ -2,11 +2,11 @@ import React, {useEffect, useState} from "react";
 import Webcam from "react-webcam";
 import Model from "./model/Model";
 import Osc from "./osc/Osc";
-import axios from 'axios';
 
 
 let video, canvas, modal, ctx, animation;
 let model;
+let osc;
 
 
 function App() {
@@ -16,10 +16,11 @@ function App() {
 	const [userPort, setUserPort]       = useState(8000);
 	const [ipAddress, setIpAddress]     = useState()
 	const size                          = useWindowSize();
+	const [isOscOn, setIsOscOn]         = useState(false);
 
-	// TODO: Replace with user data
-	const osc = new Osc(userPort);
-	// osc.open();
+	if (isOscOn && !osc) {
+		osc = new Osc();
+	}
 
 	useEffect(() => {
 		getIpClient();
@@ -60,10 +61,13 @@ function App() {
 	};
 
 	const runDetection = () => {
-		const rawData  = model.getData();
-		const normData = model.processData(rawData);
+		const rawData = model.getData();
 
-		model.setData(normData, osc);
+		if (isOscOn) {
+			const normData = model.processData(rawData);
+			model.sendData(normData, osc);
+		}
+
 		model.displayData(rawData);
 
 		animation = window.requestAnimationFrame(runDetection);
@@ -71,6 +75,11 @@ function App() {
 
 	const stop = () => {
 		canvas.classList.add("hidden");
+
+		if (isOscOn && osc) {
+			osc.stop();
+			osc = undefined;
+		}
 
 		cancelAnimationFrame(animation);
 		setIsDetecting(false);
@@ -238,6 +247,14 @@ function App() {
 				</div>
 
 				{/* TODO: Add containers based on the element's function */}
+				<label htmlFor={"toggle-osc"}>Send
+					<input type={"checkbox"} name={"toggle-osc"} id={"toggle-osc"}
+					       onChange={e => setIsOscOn(e.target.checked)}/>
+				</label>
+
+				<button onClick={!isDetecting ? start : stop}>
+					{!isDetecting ? "Start" : "Stop"} detection
+				</button>
 				<div className="button">
 					<button onClick={!isDetecting ? start : stop}
 					        style={{backgroundColor: setBackground()}}>
@@ -255,9 +272,9 @@ function App() {
 						<p>{userPort}</p>
 					</div>
 				</div>
+				<Webcam id="video"/>
+				<canvas id="render" className="hidden canvas"/>
 			</div>
-
-
 	);
 }
 
