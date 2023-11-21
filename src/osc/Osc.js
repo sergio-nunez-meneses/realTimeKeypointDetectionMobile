@@ -11,7 +11,7 @@ export default class Osc {
 		this.osc.close();
 	}
 
-	sendData(address, value) {
+	sendMessage(address, value) {
 		const message = new OSC.Message(address, value);
 		this.osc.send(message);
 	}
