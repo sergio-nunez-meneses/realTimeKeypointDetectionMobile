@@ -201,17 +201,10 @@ export default class Model {
 		return normData;
 	}
 
-	setData(data, osc) {
-		// data.forEach(obj => {
-		// 	const objKey       = Object.keys(obj)[0];
-		// 	const modelNameKey = objKey.includes("hand") ? objKey.substring(0) :
-		// 			this.modelName;
-		// 	const landmark     = obj[modelNameKey];
-		// 	const landmarkName = Object.keys(landmark);
-		// 	const coordinates  = Object.values(landmark[landmarkName]).join(", ");
-		// 	const address      = `/${modelNameKey}/${landmarkName}/xyz`;
-		// 	osc.sendData(address, coordinates);
-		// })
+	sendData(data, osc) {
+		data.forEach(obj => {
+			osc.sendMessage(obj.address, obj.value);
+		})
 	}
 
 	displayData(data) {
