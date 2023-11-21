@@ -8,7 +8,7 @@ const faceModel = await FaceLandmarker.createFromOptions(vision, {
 	},
 	outputFaceBlendshapes: true,
 	runningMode          : "VIDEO",
-	numFaces             : 2,
+	numFaces             : 1,
 });
 
 export {FaceLandmarker as faceLandmarks, faceModel};

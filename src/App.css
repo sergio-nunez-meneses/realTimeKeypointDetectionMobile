@@ -84,7 +84,7 @@ body {
     width: 80%;
     height: 60%;
     padding: 5% 0 5% 0;
-    border-radius: 5%;
+    border-radius: 10px;
     top: 10%;
     background: rgba(255, 255, 255, 0.8);
     animation: modalAnim 0.3s forwards;
@@ -151,6 +151,7 @@ select {
 }
 
 .button {
+    z-index: 10;
     position: absolute;
     bottom: 10%;
 }
@@ -216,7 +217,10 @@ select {
 }
 
 
-@media screen and (min-width: 800px ) and (max-width: 1080px) {
+@media screen and (min-width: 400px ) and (max-width: 900px) {
+    .flex{
+        display: grid;
+    }
     body{
         height: 100%;
         width: 100%;
@@ -225,6 +229,31 @@ select {
         height: 100vh;
     }
 
+    #modal{
+        padding: 0;
+        grid-template-areas:
+    "a b"
+    "c b"
+    "d d";
+    }
+
+    .model_container{
+        grid-area: a;
+    }
+
+    .port_container{
+        grid-area: c;
+    }
+
+    .landmarks_container{
+        grid-area: b;
+    }
+
+    .warning{
+        grid-area: d;
+    }
+
+
     .infos {
         left: 0;
         width: 40%;
@@ -232,11 +261,3 @@ select {
     }
 }
 
-@media screen and (min-width: 1080px ) and (max-width: 2600px) {
-    .infos {
-        left: 0;
-        width: 40%;
-        height: 8%;
-    }
-
-}

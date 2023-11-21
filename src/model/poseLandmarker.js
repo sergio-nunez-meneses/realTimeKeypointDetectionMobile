@@ -7,7 +7,7 @@ const poseModel = await PoseLandmarker.createFromOptions(vision, {
 		delegate      : "GPU",
 	},
 	runningMode: "VIDEO",
-	numPoses   : 2,
+	numPoses   : 1,
 });
 
 export {poseModel, PoseLandmarker as poseLandmarks};
