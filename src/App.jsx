@@ -10,7 +10,7 @@ let osc;
 
 
 function App() {
-	const [isDetecting, setIsDetecting] = useState(0);
+	const [isDetecting, setIsDetecting] = useState(false);
 	const [modelName, setModelName]     = useState("face");
 	const [isOscOn, setIsOscOn]         = useState(false);
 
