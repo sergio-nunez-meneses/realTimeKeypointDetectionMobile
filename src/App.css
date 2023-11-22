@@ -6,8 +6,6 @@ body {
 }
 
 
-
-
 .App {
     position: relative;
     width: 100%;
@@ -152,14 +150,25 @@ select {
     gap: 7px;
 }
 
+.check{
+    background-color: white;
+    border: none;
+    width: 50px;
+}
+
+video{
+    transform: rotateY(180deg);
+}
 .canvas {
     position: absolute;
+    transform: rotateY(180deg);
+
 }
 
 .button {
     z-index: 10;
     position: absolute;
-    bottom: 10%;
+    top: 82%;
 }
 
 .button button {
@@ -223,7 +232,7 @@ select {
 }
 
 
-@media screen and (min-width: 400px ) and (max-width: 900px) {
+@media screen and (min-width: 400px ) and (max-width: 915px) {
     .flex{
         display: grid;
     }
@@ -236,6 +245,8 @@ select {
     }
 
     #modal{
+        top: 12%;
+        width: 75%;
         padding: 0;
         grid-template-areas:
     "a b"
@@ -244,13 +255,16 @@ select {
     "d d";
     }
     #toggle{
+        margin-left: 15%;
         grid-area: e;
     }
     .model_container{
+        margin: 10% 0 0 15%;
         grid-area: a;
     }
 
     .port_container{
+        margin-left: 15%;
         grid-area: c;
     }
 

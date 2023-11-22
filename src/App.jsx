@@ -22,7 +22,6 @@ function App() {
     if (isOscOn && !osc) {
         osc = new Osc();
     }
-    console.log("25: ", osc);
 
     useEffect(() => {
         getIpClient();
@@ -203,7 +202,7 @@ function App() {
                 </div>
                 <div id="toggle">
                     <label htmlFor={"toggle-osc"}>Send
-                        <input type={"checkbox"} name={"toggle-osc"} id={"toggle-osc"}
+                        <input className="check" type={"checkbox"} name={"toggle-osc"} id={"toggle-osc"}
                                onChange={e => setIsOscOn(e.target.checked)}/>
                     </label>
                 </div>
@@ -211,15 +210,15 @@ function App() {
                     <p>Landmarks</p>
                     <div className="landmarks">
                         <div>
-                            <input type="checkbox"/>
+                            <input className="check" type="checkbox"/>
                             <label>Right Eye</label>
                         </div>
                         <div>
-                            <input type="checkbox"/>
+                            <input className="check" type="checkbox"/>
                             <label>Left Eye</label>
                         </div>
                         <div>
-                            <input type="checkbox"/>
+                            <input className="check" type="checkbox"/>
                             <label>Lips</label>
                         </div>
                     </div>
