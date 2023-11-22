@@ -78,12 +78,12 @@ body {
 }
 
 .burger::before {
-    /*transition: all 0.3s ease-in-out;*/
+    transition: all 0.3s ease-in-out;
     transform: translateY(-9px);
 }
 
 .burger::after {
-    /*transition: all 0.3s ease-in-out;*/
+    transition: all 0.3s ease-in-out;
     transform: translateY(9px);
 }
 
@@ -98,6 +98,8 @@ body {
 .cross::after {
     transform: rotate(-45deg);
 }
+
+
 
 
 #modal {
@@ -269,7 +271,7 @@ video{
     }
 
     #modal{
-        top: 12%;
+        top: 14%;
         width: 75%;
         padding: 0;
         grid-template-areas:
@@ -305,6 +307,24 @@ video{
         left: 0;
         width: 40%;
         height: 8%;
+    }
+}
+
+@media screen and (min-width: 350px ) and (max-width: 450px){
+
+    #modal{
+        top: 15%;
+    }
+
+}
+
+@media screen and (min-width: 200px ) and (max-width: 349px){
+    #modal{
+        top: 17%;
+    }
+
+    .infos{
+        font-size: 0.9rem;
     }
 }
 
