@@ -23,18 +23,24 @@ body {
 
 #burger-menu {
     position: absolute;
+    border: 2px solid white;
+    border-radius: 50%;
     font-size: 1.4rem;
     color: white;
-    width: 30px;
-    height: 14px;
+    width: 45px;
+    height: 45px;
     cursor: pointer;
     z-index: 10;
     top: 5%;
     right: 5%;
+    background: rgba(33, 33, 33, 0.3);
 }
 
 .burger {
+    margin-top: 50%;
+    margin-left: 50%;
     position: relative;
+    transform: translate(-50%, -50%);
 }
 
 .burger,
@@ -234,9 +240,12 @@ select {
         grid-template-areas:
     "a b"
     "c b"
+    "e b"
     "d d";
     }
-
+    #toggle{
+        grid-area: e;
+    }
     .model_container{
         grid-area: a;
     }
