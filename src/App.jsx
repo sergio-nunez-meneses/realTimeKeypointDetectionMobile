@@ -215,9 +215,6 @@ function App() {
 					<canvas id="render" className="hidden canvas"/>
 				</div>
 
-				<button onClick={!isDetecting ? start : stop}>
-					{!isDetecting ? "Start" : "Stop"} detection
-				</button>
 				<div className="button">
 					<button onClick={!isDetecting ? start : stop}
 					        style={{backgroundColor: setBackground()}}>
