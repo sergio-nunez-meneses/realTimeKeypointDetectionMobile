@@ -85,7 +85,7 @@ function App() {
 	};
 
 	const modalShow = () => {
-		if (showModal === false) {
+		if (!showModal) {
 			setShowModal(true)
 			modal.classList.remove("hidden");
 			modal.classList.add("flex")
@@ -98,12 +98,10 @@ function App() {
 	}
 
 	const setBackground = () => {
-		if (isDetecting === false) {
+		if (!isDetecting) {
 			return ("red");
 		}
-		else {
-			return ("#23E95A");
-		}
+		return ("#23E95A");
 	};
 	const isLandscape   = size.height <= size.width;
 	const ratio         = isLandscape ? size.width / size.height : size.height /
