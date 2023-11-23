@@ -11,263 +11,265 @@ let osc;
 
 
 function App() {
-    const [isDetecting, setIsDetecting] = useState(false);
-    const [modelName, setModelName] = useState("face");
-    const [showModal, setShowModal] = useState(false);
-    const [userPort, setUserPort] = useState(8000);
-    const [ipAddress, setIpAddress] = useState()
-    const size = useWindowSize();
-    const [isOscOn, setIsOscOn] = useState(false);
+	const [isDetecting, setIsDetecting] = useState(false);
+	const [modelName, setModelName]     = useState("face");
+	const [showModal, setShowModal]     = useState(false);
+	const [userPort, setUserPort]       = useState(8000);
+	const [ipAddress, setIpAddress]     = useState()
+	const size                          = useWindowSize();
+	const [isOscOn, setIsOscOn]         = useState(false);
 
-    if (isOscOn && !osc) {
-        osc = new Osc();
-    }
+	if (isOscOn && !osc) {
+		osc = new Osc();
+	}
 
-    useEffect(() => {
-        getIpClient();
-        video = document.getElementById("video");
-        video.addEventListener("loadeddata", () => {
-            modal = document.getElementById("modal");
-            canvas = document.getElementById("render");
-            canvas.width = video.width;
-            canvas.height = video.height;
-            canvas.style.left = video.offsetLeft + "px";
-            canvas.style.top = video.offsetTop + "px";
+	useEffect(() => {
+		getIpClient();
+		video = document.getElementById("video");
+		video.addEventListener("loadeddata", () => {
+			modal             = document.getElementById("modal");
+			canvas            = document.getElementById("render");
+			canvas.width      = video.width;
+			canvas.height     = video.height;
+			canvas.style.left = video.offsetLeft + "px";
+			canvas.style.top  = video.offsetTop + "px";
 
-            window.addEventListener("resize", () => {
-                canvas.width = video.width;
-                canvas.height = video.height;
-                canvas.style.left = video.offsetLeft + "px";
-                canvas.style.top = video.offsetTop + "px";
-            })
+			window.addEventListener("resize", () => {
+				canvas.width      = video.width;
+				canvas.height     = video.height;
+				canvas.style.left = video.offsetLeft + "px";
+				canvas.style.top  = video.offsetTop + "px";
+			})
 
-            ctx = canvas.getContext("2d");
+			ctx = canvas.getContext("2d");
 
-            model = new Model(video, ctx);
-        });
-    }, []);
+			model = new Model(video, ctx);
+		});
+	}, []);
 
-    const start = () => {
-        model.setModel(modelName);
-        modal.classList.remove("flex");
-        modal.classList.add("hidden");
-        setShowModal(false);
-
-
-        runDetection();
-
-        setIsDetecting(true);
-
-        canvas.classList.remove("hidden");
-    };
-
-    const runDetection = () => {
-        const rawData = model.getData();
-
-        if (isOscOn) {
-            const normData = model.processData(rawData);
-            model.sendData(normData, osc);
-        }
-        model.displayData(rawData);
-
-        animation = window.requestAnimationFrame(runDetection);
-    }
-
-    const stop = () => {
-        canvas.classList.add("hidden");
-
-        if (isOscOn && osc) {
-            osc.stop();
-            osc = undefined;
-        }
-
-        cancelAnimationFrame(animation);
-        setIsDetecting(false);
-    };
-
-    const modalShow = () => {
-        if (showModal === false) {
-            setShowModal(true)
-            modal.classList.remove("hidden");
-            modal.classList.add("flex")
-        } else {
-            setShowModal(false);
-            modal.classList.remove("flex")
-            modal.classList.add("hidden");
-        }
+	const start = () => {
+		model.setModel(modelName);
+		modal.classList.remove("flex");
+		modal.classList.add("hidden");
+		setShowModal(false);
 
 
-    }
+		runDetection();
 
-    const setBackground = () => {
-        if (isDetecting === false) {
-            return ("red");
-        } else {
-            return ("#23E95A");
-        }
-    };
-    const isLandscape = size.height <= size.width;
-    const ratio = isLandscape ? size.width / size.height : size.height /
-        size.width;
+		setIsDetecting(true);
 
-    // Hook
-    function useWindowSize() {
-        const [windowSize, setWindowSize] = useState({
-            width: undefined,
-            height: undefined,
-        });
+		canvas.classList.remove("hidden");
+	};
 
-        useEffect(() => {
-            function handleResize() {
-                setWindowSize({
-                    width: window.innerWidth,
-                    height: window.innerHeight,
-                });
-            }
+	const runDetection = () => {
+		const rawData = model.getData();
 
-            window.addEventListener("resize", handleResize);
+		if (isOscOn) {
+			const normData = model.processData(rawData);
+			model.sendData(normData, osc);
+		}
+		model.displayData(rawData);
 
-            handleResize();
+		animation = window.requestAnimationFrame(runDetection);
+	}
 
-            return () => window.removeEventListener("resize", handleResize);
-        }, []);
+	const stop = () => {
+		canvas.classList.add("hidden");
 
-        return windowSize;
-    }
+		if (isOscOn && osc) {
+			osc.stop();
+			osc = undefined;
+		}
 
-    async function getIpClient() {
-        try {
-            const response = await axios.get('https://api.ipify.org?format=json');
-            setIpAddress(response.data.ip);
-        } catch (error) {
-            console.error(error);
-        }
-    }
+		cancelAnimationFrame(animation);
+		setIsDetecting(false);
+	};
 
-    // const updateUserPort = async (e) => {
-    // 	const newUserPort = parseFloat(e.target.value);
-    // 	setUserPort(newUserPort);
-    //
-    // 	try {
-    // 		const response = await fetch('http://localhost:8080/updateUserPort', {
-    // 			method: 'POST',
-    // 			headers: {
-    // 				'Content-Type': 'application/json',
-    // 			},
-    // 			body: JSON.stringify({ userPort: newUserPort }),
-    // 		});
-    //
-    // 		if (!response.ok) {
-    // 			throw new Error('Update failed');
-    // 		}
-    //
-    // 		const responseData = await response.json();
-    // 		console.log('Update successful. Server response:', responseData);
-    // 	} catch (error) {
-    // 		console.error('Error updating User Port', error);
-    // 	}
-    // };
+	const modalShow = () => {
+		if (showModal === false) {
+			setShowModal(true)
+			modal.classList.remove("hidden");
+			modal.classList.add("flex")
+		}
+		else {
+			setShowModal(false);
+			modal.classList.remove("flex")
+			modal.classList.add("hidden");
+		}
 
 
-    return (
-        <div className="App">
+	}
 
-            <div id="burger-menu" onClick={modalShow}>
-                <span className={`burger ${showModal ? 'cross' : 'line'}`}></span>
-            </div>
+	const setBackground = () => {
+		if (isDetecting === false) {
+			return ("red");
+		}
+		else {
+			return ("#23E95A");
+		}
+	};
+	const isLandscape   = size.height <= size.width;
+	const ratio         = isLandscape ? size.width / size.height : size.height /
+			size.width;
 
-            <div id="modal" className="hidden">
-                <div className="model_container">
-                    <label>Model :</label>
-                    <select onChange={(e) => {
-                        setModelName(e.target.value);
-                    }} value={modelName}>
-                        <option value={"pose"}>Pose</option>
-                        <option value={"face"}>Face</option>
-                        <option value={"hand"}>Hand</option>
-                    </select>
-                </div>
-                <div className="port_container">
-                    <label>UDP Port:</label>
-                    <input value={userPort}
-                        // onChange={updateUserPort}
-                    />
-                </div>
-                <div id="toggle">
-                    <label htmlFor={"toggle-osc"}>Send
-                        <input className="check" type={"checkbox"} name={"toggle-osc"} id={"toggle-osc"}
-                               onChange={e => setIsOscOn(e.target.checked)}/>
-                    </label>
-                </div>
-                <div className="landmarks_container">
-                    <p>Landmarks</p>
-                    <div className="landmarks">
-                        <div>
-                            <input className="check" type="checkbox"/>
-                            <label>Right Eye</label>
-                        </div>
-                        <div>
-                            <input className="check" type="checkbox"/>
-                            <label>Left Eye</label>
-                        </div>
-                        <div>
-                            <input className="check" type="checkbox"/>
-                            <label>Lips</label>
-                        </div>
-                    </div>
-                </div>
-                <div className="warning">
-                    <p>Press the button below to start detection. Press it again to stop the
-                        detection.</p>
-                    <svg width="70" height="28" viewBox="0 0 70 28" fill="none"
-                         xmlns="http://www.w3.org/2000/svg">
-                        <line y1="-3" x2="41.5404" y2="-3"
-                              transform="matrix(0.829259 0.558864 -0.829259 0.558864 0 4)" stroke="black"
-                              strokeWidth="6"/>
-                        <line y1="-3" x2="41.5404" y2="-3"
-                              transform="matrix(0.829259 -0.558864 0.829259 0.558864 35.5522 28)"
-                              stroke="black" strokeWidth="6"/>
-                    </svg>
-                </div>
-            </div>
+	// Hook
+	function useWindowSize() {
+		const [windowSize, setWindowSize] = useState({
+			width : undefined,
+			height: undefined,
+		});
 
+		useEffect(() => {
+			function handleResize() {
+				setWindowSize({
+					width : window.innerWidth,
+					height: window.innerHeight,
+				});
+			}
 
-            <div className="webcam_container">
-                <Webcam
-                    id="video"
-                    height={size.height}
-                    width={size.width}
-                    videoConstraints={{facingMode: 'user', aspectRatio: ratio}}
-                    audio={false}
-                    ref={camera => window.camera = camera}/>
-                <canvas id="render" className="hidden canvas"/>
-            </div>
+			window.addEventListener("resize", handleResize);
 
-            {/* TODO: Add containers based on the element's function */}
+			handleResize();
+
+			return () => window.removeEventListener("resize", handleResize);
+		}, []);
+
+		return windowSize;
+	}
+
+	async function getIpClient() {
+		try {
+			const response = await axios.get('https://api.ipify.org?format=json');
+			setIpAddress(response.data.ip);
+		} catch (error) {
+			console.error(error);
+		}
+	}
+
+	// const updateUserPort = async (e) => {
+	// 	const newUserPort = parseFloat(e.target.value);
+	// 	setUserPort(newUserPort);
+	//
+	// 	try {
+	// 		const response = await fetch('http://localhost:8080/updateUserPort', {
+	// 			method: 'POST',
+	// 			headers: {
+	// 				'Content-Type': 'application/json',
+	// 			},
+	// 			body: JSON.stringify({ userPort: newUserPort }),
+	// 		});
+	//
+	// 		if (!response.ok) {
+	// 			throw new Error('Update failed');
+	// 		}
+	//
+	// 		const responseData = await response.json();
+	// 		console.log('Update successful. Server response:', responseData);
+	// 	} catch (error) {
+	// 		console.error('Error updating User Port', error);
+	// 	}
+	// };
 
 
-            <button onClick={!isDetecting ? start : stop}>
-                {!isDetecting ? "Start" : "Stop"} detection
-            </button>
-            <div className="button">
-                <button onClick={!isDetecting ? start : stop}
-                        style={{backgroundColor: setBackground()}}>
+	return (
+			<div className="App">
 
-                </button>
-            </div>
+				<div id="burger-menu" onClick={modalShow}>
+					<span className={`burger ${showModal ? 'cross' : 'line'}`}></span>
+				</div>
 
-            <div className="infos">
-                <div className="IP">
-                    <p>IP :</p>
-                    <p>{ipAddress}</p>
-                </div>
-                <div className="UDP">
-                    <p>UDP Port :</p>
-                    <p>{userPort}</p>
-                </div>
-            </div>
-        </div>
-    );
+				<div id="modal" className="hidden">
+					<div className="model_container">
+						<label>Model :</label>
+						<select onChange={(e) => {
+							setModelName(e.target.value);
+						}} value={modelName}>
+							<option value={"pose"}>Pose</option>
+							<option value={"face"}>Face</option>
+							<option value={"hand"}>Hand</option>
+						</select>
+					</div>
+					<div className="port_container">
+						<label>UDP Port:</label>
+						<input value={userPort}
+								// onChange={updateUserPort}
+						/>
+					</div>
+					<div id="toggle">
+						<label htmlFor={"toggle-osc"}>Send
+							<input className="check" type={"checkbox"} name={"toggle-osc"} id={"toggle-osc"}
+							       onChange={e => setIsOscOn(e.target.checked)}/>
+						</label>
+					</div>
+					<div className="landmarks_container">
+						<p>Landmarks</p>
+						<div className="landmarks">
+							<div>
+								<input className="check" type="checkbox"/>
+								<label>Right Eye</label>
+							</div>
+							<div>
+								<input className="check" type="checkbox"/>
+								<label>Left Eye</label>
+							</div>
+							<div>
+								<input className="check" type="checkbox"/>
+								<label>Lips</label>
+							</div>
+						</div>
+					</div>
+					<div className="warning">
+						<p>Press the button below to start detection. Press it again to stop the
+							detection.</p>
+						<svg width="70" height="28" viewBox="0 0 70 28" fill="none"
+						     xmlns="http://www.w3.org/2000/svg">
+							<line y1="-3" x2="41.5404" y2="-3"
+							      transform="matrix(0.829259 0.558864 -0.829259 0.558864 0 4)" stroke="black"
+							      strokeWidth="6"/>
+							<line y1="-3" x2="41.5404" y2="-3"
+							      transform="matrix(0.829259 -0.558864 0.829259 0.558864 35.5522 28)"
+							      stroke="black" strokeWidth="6"/>
+						</svg>
+					</div>
+				</div>
+
+
+				<div className="webcam_container">
+					<Webcam
+							id="video"
+							height={size.height}
+							width={size.width}
+							videoConstraints={{facingMode: 'user', aspectRatio: ratio}}
+							audio={false}
+							ref={camera => window.camera = camera}/>
+					<canvas id="render" className="hidden canvas"/>
+				</div>
+
+				{/* TODO: Add containers based on the element's function */}
+
+
+				<button onClick={!isDetecting ? start : stop}>
+					{!isDetecting ? "Start" : "Stop"} detection
+				</button>
+				<div className="button">
+					<button onClick={!isDetecting ? start : stop}
+					        style={{backgroundColor: setBackground()}}>
+
+					</button>
+				</div>
+
+				<div className="infos">
+					<div className="IP">
+						<p>IP :</p>
+						<p>{ipAddress}</p>
+					</div>
+					<div className="UDP">
+						<p>UDP Port :</p>
+						<p>{userPort}</p>
+					</div>
+				</div>
+			</div>
+	);
 }
 
 export default App;
