@@ -1,45 +1,333 @@
-.App{
-  width: 100%;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 3rem;
+@font-face {
+    font-family: 'Nunito';
+    src: url('./fonts/Nunito-Bold.ttf') format('truetype');
+    font-weight: bold;
+    font-style: normal;
+    font-display: swap;
 }
 
-.imageContainer{
-  width: 80%;
-  height: 200px;
-  cursor: pointer;
-  display: flex;
-  justify-content: center;
+@font-face {
+    font-family: 'Nunito';
+    src: url('./fonts/Nunito-Regular.ttf') format('truetype');
+    font-weight: normal;
+    font-style: normal;
+    font-display: swap;
 }
 
-.imageContainer img{
-  max-width: 100%;
+
+body {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+
 }
 
-.key-point {
+
+.App {
+    font-family: Nunito, sans-serif;
+    position: relative;
+    width: 100%;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 3rem;
+    overflow: hidden;
+    font-weight: bolder;
+    /*font-family: "Inter Semi Bold", sans-serif;*/
+}
+
+#burger-menu {
     position: absolute;
-    z-index: 2;
-    width: 3px;
-    height: 3px;
-    background-color: #ff0000;
-    /* border: 1px solid #ffffff; */
+    border: 2px solid white;
     border-radius: 50%;
+    font-size: 1.4rem;
+    color: white;
+    width: 45px;
+    height: 45px;
+    cursor: pointer;
+    z-index: 10;
+    top: 5%;
+    right: 5%;
+    background: rgba(33, 33, 33, 0.3);
+}
+
+.burger {
+    margin-top: 50%;
+    margin-left: 50%;
+    position: relative;
+    transform: translate(-50%, -50%);
+}
+
+.burger,
+.burger::before,
+.burger::after {
     display: block;
-  }
+    width: 30px;
+    height: 3px;
 
-.highlighter {
-    background: rgba(0, 255, 0, 0.25);
-    border: 1px dashed #fff;
-    z-index: 1;
+    background: white;
+    z-index: 18;
+}
+
+.burger::before,
+.burger::after {
+    content: "";
     position: absolute;
-  }
-
-.canvas{
-  position: absolute;
+    left: 0;
 }
 
-.hidden{
-  visibility: hidden;
+.burger::before {
+    transition: all 0.3s ease-in-out;
+    transform: translateY(-9px);
 }
+
+.burger::after {
+    transition: all 0.3s ease-in-out;
+    transform: translateY(9px);
+}
+
+.cross {
+    background: transparent;
+}
+
+.cross::before {
+    transform: rotate(45deg);
+}
+
+.cross::after {
+    transform: rotate(-45deg);
+}
+
+
+
+
+#modal {
+    position: absolute;
+    z-index: 10;
+    width: 80%;
+    height: 60%;
+    padding: 5% 0 5% 0;
+    border-radius: 10px;
+    top: 10%;
+    background: rgba(255, 255, 255, 0.8);
+    animation: modalAnim 0.3s forwards;
+    transform: scale(0, 0) translate(100%, -100%);
+    flex-direction: column;
+    justify-content: space-between;
+    align-items: center;
+}
+
+@keyframes modalAnim {
+    0% {
+        opacity: 0;
+        transform: scale(0, 0) translate(100%, -100%);
+
+    }
+
+    100% {
+        opacity: 1;
+        transform: scale(1, 1) translate(0, 0);
+    }
+
+}
+
+
+select {
+    width: 70px;
+    height: 20px;
+    background-color: white;
+    border: none;
+    border-radius: 5px;
+    font-weight: bolder;
+    margin-left: 5px;
+}
+
+.warning {
+    text-align: center;
+}
+
+.model_container select{
+    font-family: Nunito, sans-serif;
+    font-weight: bold;
+}
+
+.port_container input {
+    font-family: Nunito, sans-serif;
+    width: 50px;
+    height: 20px;
+    background-color: white;
+    border: none;
+    border-radius: 5px;
+    font-weight: bold;
+    margin-left: 5px;
+    text-align: center;
+}
+
+.landmarks_container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.landmarks {
+    display: flex;
+    flex-flow: row wrap;
+    gap: 7px;
+}
+
+.check{
+    background-color: white;
+    border: none;
+    width: 50px;
+}
+
+video{
+    transform: rotateY(180deg);
+}
+.canvas {
+    position: absolute;
+    transform: rotateY(180deg);
+
+}
+
+.button {
+    z-index: 10;
+    position: absolute;
+    top: 82%;
+}
+
+.button button {
+    position: relative;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    cursor: pointer;
+    border: none;
+}
+
+.button button::before {
+    position: absolute;
+    content: "";
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    border: 3px white solid;
+    transform: translate(-50%, -50%);
+}
+
+.infos {
+    font-size: 14px;
+    color: white;
+    width: 100%;
+    height: 25px;
+    position: absolute;
+    bottom: 0;
+    background: rgba(33, 33, 33, 0.5);
+    display: flex;
+    flex-direction: row;
+    justify-content: space-evenly;
+    align-items: center;
+    border: solid white;
+    border-width: 1px 1px 0 0;
+}
+
+.IP, .UDP {
+    /*width: 50%;*/
+    display: flex;
+    flex-direction: row;
+}
+
+.IP {
+    /*padding-left: 5%;*/
+}
+
+.IP p, .UDP p {
+    margin: 0;
+}
+
+.IP p:last-of-type, .UDP p:last-of-type {
+
+    margin-left: 5px;
+}
+
+.hidden {
+    display: none;
+}
+
+.flex {
+    display: flex;
+}
+
+
+@media screen and (min-width: 450px ) and (max-width: 915px) {
+    .flex{
+        display: grid;
+    }
+    body{
+        height: 100%;
+        width: 100%;
+    }
+    .App {
+        height: 100vh;
+    }
+
+    #modal{
+        top: 14%;
+        width: 75%;
+        padding: 0;
+        grid-template-areas:
+    "a b"
+    "c b"
+    "e b"
+    "d d";
+    }
+    #toggle{
+        margin-left: 15%;
+        grid-area: e;
+    }
+    .model_container{
+        margin: 10% 0 0 15%;
+        grid-area: a;
+    }
+
+    .port_container{
+        margin-left: 15%;
+        grid-area: c;
+    }
+
+    .landmarks_container{
+        grid-area: b;
+    }
+
+    .warning{
+        grid-area: d;
+    }
+
+
+    .infos {
+        font-size: 12px;
+        left: 0;
+        width: 40%;
+        height: 8%;
+    }
+}
+
+@media screen and (min-width: 350px ) and (max-width: 450px){
+
+    #modal{
+        top: 15%;
+    }
+
+}
+
+@media screen and (min-width: 200px ) and (max-width: 349px){
+    #modal{
+        top: 17%;
+    }
+
+    .infos{
+        font-size: 12px;
+    }
+}
+

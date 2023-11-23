@@ -1,178 +1,273 @@
-import {DrawingUtils} from "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@latest";
 import React, {useEffect, useState} from "react";
 import Webcam from "react-webcam";
-import models from "./models/Models";
-import OSC from "osc-js";
+import Model from "./model/Model";
+import Osc from "./osc/Osc";
+import axios from "axios";
 
 
-let video, canvas, ctx, animation;
-let model, modelKey, isFace;
+let video, canvas, modal, ctx, animation;
+let model;
+let osc;
 
 
 function App() {
-	const [isDetecting, setIsDetecting] = useState(0);
-	const [modelName, setModelName]     = useState("face");
+    const [isDetecting, setIsDetecting] = useState(false);
+    const [modelName, setModelName] = useState("face");
+    const [showModal, setShowModal] = useState(false);
+    const [userPort, setUserPort] = useState(8000);
+    const [ipAddress, setIpAddress] = useState()
+    const size = useWindowSize();
+    const [isOscOn, setIsOscOn] = useState(false);
 
-	const osc = new OSC({plugin: new OSC.WebsocketClientPlugin()});
-	osc.open();
+    if (isOscOn && !osc) {
+        osc = new Osc();
+    }
 
-	useEffect(() => {
-		video = document.getElementById("video");
-		video.addEventListener("loadeddata", () => {
-			canvas            = document.getElementById("render");
-			canvas.width      = video.videoWidth;
-			canvas.height     = video.videoHeight;
-			canvas.style.left = video.offsetLeft + "px";
-			canvas.style.top  = video.offsetTop + "px";
+    useEffect(() => {
+        getIpClient();
+        video = document.getElementById("video");
+        video.addEventListener("loadeddata", () => {
+            modal = document.getElementById("modal");
+            canvas = document.getElementById("render");
+            canvas.width = video.width;
+            canvas.height = video.height;
+            canvas.style.left = video.offsetLeft + "px";
+            canvas.style.top = video.offsetTop + "px";
 
-			ctx         = canvas.getContext("2d");
-			models.draw = new DrawingUtils(ctx);
-		});
-	}, []);
+            window.addEventListener("resize", () => {
+                canvas.width = video.width;
+                canvas.height = video.height;
+                canvas.style.left = video.offsetLeft + "px";
+                canvas.style.top = video.offsetTop + "px";
+            })
 
-	const start = () => {
-		model = models[modelName];
+            ctx = canvas.getContext("2d");
 
-		runDetection(model);
+            model = new Model(video, ctx);
+        });
+    }, []);
 
-		setIsDetecting(1);
-
-		canvas.classList.remove("hidden");
-	};
-
-	const runDetection = (model) => {
-		const rawData = getData(model.model);
-
-		if (rawData[modelKey].length > 0) {
-			const data = processData(rawData);
-
-			sendData(data);
-			displayData(rawData);
-		}
-		else {
-			ctx.clearRect(0, 0, canvas.width, canvas.height); // Keep landmarks off the canvas
-		}
-
-		animation = window.requestAnimationFrame(runDetection);
-	}
-
-	const getData = () => {
-		const startTimeMs = performance.now();
-		let lastVideoTime = -1;
-		let rawData;
-
-		if (lastVideoTime !== video.currentTime) {
-			rawData       = model.model.detectForVideo(video, startTimeMs);
-			isFace        = "faceLandmarks" in rawData;
-			modelKey      = isFace ? "faceLandmarks" : "landmarks";
-			lastVideoTime = video.currentTime;
-		}
-		return rawData;
-	};
-
-	const processData = (rawData) => {
-		const landmarkNameIndexes = Object.entries(model.namedLandmarks);
-		let normData              = [];
-
-		rawData[modelKey].forEach((landmarks, i) => {
-			landmarks.forEach((coordinates, j) => {
-				let modelNameKey, handName, landmarkData, landmarkName;
-
-				if (modelName === "hand") {
-					handName = rawData.handedness[i][0].categoryName.toLowerCase();
-				}
-				modelNameKey = modelName === "hand" ? `${handName}_${modelName}` : modelName;
-
-				const landmarkInfo = landmarkNameIndexes.filter(
-						nameIndexes => nameIndexes[1].includes(j));
-
-				if (landmarkInfo.length > 0) {
-					landmarkData = {
-						[modelNameKey]: {},
-					};
-
-					landmarkInfo.forEach(info => {
-						const name                 = info[0];
-						const index                = info[1].indexOf(j);
-						landmarkName               = isFace ? `${name}_${index}` : name;
-						landmarkData[modelNameKey] = {
-							[landmarkName]: {
-								"x": coordinates.x,
-								"y": coordinates.y,
-								"z": coordinates.z,
-							},
-						}
-					});
-					normData.push(landmarkData);
-				}
-			})
-		})
-		return normData;
-	}
-
-	const sendData = (data) => {
-		data.forEach(obj => {
-			const objKey       = Object.keys(obj)[0];
-			const modelNameKey = objKey.includes("hand") ? objKey.substring(0) : modelName;
-			const landmark     = obj[modelNameKey];
-			const landmarkName = Object.keys(landmark);
-			const coordinates  = Object.values(landmark[landmarkName]).join(", ");
-			const address      = `/${modelNameKey}/${landmarkName}/xyz`;
-			const message      = new OSC.Message(address, coordinates);
-			osc.send(message);
-		})
-	}
+    const start = () => {
+        model.setModel(modelName);
+        modal.classList.remove("flex");
+        modal.classList.add("hidden");
+        setShowModal(false);
 
 
-	const displayData = (data) => {
-		ctx.clearRect(0, 0, canvas.width, canvas.height);
+        runDetection();
 
-		data[modelKey].forEach(landmark => {
-			model.connectorInfo.forEach(connector => {
-				models.draw.drawConnectors(
-						landmark,
-						model.landmarks[connector.name],
-						connector.style,
-				);
+        setIsDetecting(true);
 
-				if (!isFace) {
-					models.draw.drawLandmarks(landmark);
-				}
-			})
-		})
-	};
+        canvas.classList.remove("hidden");
+    };
 
-	const stop = () => {
-		canvas.classList.add("hidden");
+    const runDetection = () => {
+        const rawData = model.getData();
 
-		cancelAnimationFrame(animation);
-		setIsDetecting(0);
-	};
+        if (isOscOn) {
+            const normData = model.processData(rawData);
+            model.sendData(normData, osc);
+        }
+        model.displayData(rawData);
 
-	return (
-			<div className="App">
-				<div>
-					<label>Model :</label>
-					<select onChange={(e) => {
-						setModelName(e.target.value);
-					}} value={modelName}>
-						<option value={"pose"}>Pose</option>
-						<option value={"face"}>Face</option>
-						<option value={"hand"}>Hand</option>
-					</select>
-				</div>
+        animation = window.requestAnimationFrame(runDetection);
+    }
 
-				{/* TODO: Add containers based on the element's function */}
-				<button onClick={!isDetecting ? start : stop}>
-					{!isDetecting ? "Start" : "Stop"} detection
-				</button>
+    const stop = () => {
+        canvas.classList.add("hidden");
 
-				<Webcam id="video"/>
-				<canvas id="render" className="hidden canvas"/>
+        if (isOscOn && osc) {
+            osc.stop();
+            osc = undefined;
+        }
 
-				{/* <button id="send" onClick={testMessage}>Send</button> */}
-			</div>
-	);
+        cancelAnimationFrame(animation);
+        setIsDetecting(false);
+    };
+
+    const modalShow = () => {
+        if (showModal === false) {
+            setShowModal(true)
+            modal.classList.remove("hidden");
+            modal.classList.add("flex")
+        } else {
+            setShowModal(false);
+            modal.classList.remove("flex")
+            modal.classList.add("hidden");
+        }
+
+
+    }
+
+    const setBackground = () => {
+        if (isDetecting === false) {
+            return ("red");
+        } else {
+            return ("#23E95A");
+        }
+    };
+    const isLandscape = size.height <= size.width;
+    const ratio = isLandscape ? size.width / size.height : size.height /
+        size.width;
+
+    // Hook
+    function useWindowSize() {
+        const [windowSize, setWindowSize] = useState({
+            width: undefined,
+            height: undefined,
+        });
+
+        useEffect(() => {
+            function handleResize() {
+                setWindowSize({
+                    width: window.innerWidth,
+                    height: window.innerHeight,
+                });
+            }
+
+            window.addEventListener("resize", handleResize);
+
+            handleResize();
+
+            return () => window.removeEventListener("resize", handleResize);
+        }, []);
+
+        return windowSize;
+    }
+
+    async function getIpClient() {
+        try {
+            const response = await axios.get('https://api.ipify.org?format=json');
+            setIpAddress(response.data.ip);
+        } catch (error) {
+            console.error(error);
+        }
+    }
+
+    // const updateUserPort = async (e) => {
+    // 	const newUserPort = parseFloat(e.target.value);
+    // 	setUserPort(newUserPort);
+    //
+    // 	try {
+    // 		const response = await fetch('http://localhost:8080/updateUserPort', {
+    // 			method: 'POST',
+    // 			headers: {
+    // 				'Content-Type': 'application/json',
+    // 			},
+    // 			body: JSON.stringify({ userPort: newUserPort }),
+    // 		});
+    //
+    // 		if (!response.ok) {
+    // 			throw new Error('Update failed');
+    // 		}
+    //
+    // 		const responseData = await response.json();
+    // 		console.log('Update successful. Server response:', responseData);
+    // 	} catch (error) {
+    // 		console.error('Error updating User Port', error);
+    // 	}
+    // };
+
+
+    return (
+        <div className="App">
+
+            <div id="burger-menu" onClick={modalShow}>
+                <span className={`burger ${showModal ? 'cross' : 'line'}`}></span>
+            </div>
+
+            <div id="modal" className="hidden">
+                <div className="model_container">
+                    <label>Model :</label>
+                    <select onChange={(e) => {
+                        setModelName(e.target.value);
+                    }} value={modelName}>
+                        <option value={"pose"}>Pose</option>
+                        <option value={"face"}>Face</option>
+                        <option value={"hand"}>Hand</option>
+                    </select>
+                </div>
+                <div className="port_container">
+                    <label>UDP Port:</label>
+                    <input value={userPort}
+                        // onChange={updateUserPort}
+                    />
+                </div>
+                <div id="toggle">
+                    <label htmlFor={"toggle-osc"}>Send
+                        <input className="check" type={"checkbox"} name={"toggle-osc"} id={"toggle-osc"}
+                               onChange={e => setIsOscOn(e.target.checked)}/>
+                    </label>
+                </div>
+                <div className="landmarks_container">
+                    <p>Landmarks</p>
+                    <div className="landmarks">
+                        <div>
+                            <input className="check" type="checkbox"/>
+                            <label>Right Eye</label>
+                        </div>
+                        <div>
+                            <input className="check" type="checkbox"/>
+                            <label>Left Eye</label>
+                        </div>
+                        <div>
+                            <input className="check" type="checkbox"/>
+                            <label>Lips</label>
+                        </div>
+                    </div>
+                </div>
+                <div className="warning">
+                    <p>Press the button below to start detection. Press it again to stop the
+                        detection.</p>
+                    <svg width="70" height="28" viewBox="0 0 70 28" fill="none"
+                         xmlns="http://www.w3.org/2000/svg">
+                        <line y1="-3" x2="41.5404" y2="-3"
+                              transform="matrix(0.829259 0.558864 -0.829259 0.558864 0 4)" stroke="black"
+                              strokeWidth="6"/>
+                        <line y1="-3" x2="41.5404" y2="-3"
+                              transform="matrix(0.829259 -0.558864 0.829259 0.558864 35.5522 28)"
+                              stroke="black" strokeWidth="6"/>
+                    </svg>
+                </div>
+            </div>
+
+
+            <div className="webcam_container">
+                <Webcam
+                    id="video"
+                    height={size.height}
+                    width={size.width}
+                    videoConstraints={{facingMode: 'user', aspectRatio: ratio}}
+                    audio={false}
+                    ref={camera => window.camera = camera}/>
+                <canvas id="render" className="hidden canvas"/>
+            </div>
+
+            {/* TODO: Add containers based on the element's function */}
+
+
+            <button onClick={!isDetecting ? start : stop}>
+                {!isDetecting ? "Start" : "Stop"} detection
+            </button>
+            <div className="button">
+                <button onClick={!isDetecting ? start : stop}
+                        style={{backgroundColor: setBackground()}}>
+
+                </button>
+            </div>
+
+            <div className="infos">
+                <div className="IP">
+                    <p>IP :</p>
+                    <p>{ipAddress}</p>
+                </div>
+                <div className="UDP">
+                    <p>UDP Port :</p>
+                    <p>{userPort}</p>
+                </div>
+            </div>
+        </div>
+    );
 }
 
 export default App;
