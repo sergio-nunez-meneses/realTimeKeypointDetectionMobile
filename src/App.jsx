@@ -53,7 +53,6 @@ function App() {
 		modal.classList.add("hidden");
 		setShowModal(false);
 
-
 		runDetection();
 
 		setIsDetecting(true);
@@ -96,8 +95,6 @@ function App() {
 			modal.classList.remove("flex")
 			modal.classList.add("hidden");
 		}
-
-
 	}
 
 	const setBackground = () => {
@@ -146,30 +143,6 @@ function App() {
 		}
 	}
 
-	// const updateUserPort = async (e) => {
-	// 	const newUserPort = parseFloat(e.target.value);
-	// 	setUserPort(newUserPort);
-	//
-	// 	try {
-	// 		const response = await fetch('http://localhost:8080/updateUserPort', {
-	// 			method: 'POST',
-	// 			headers: {
-	// 				'Content-Type': 'application/json',
-	// 			},
-	// 			body: JSON.stringify({ userPort: newUserPort }),
-	// 		});
-	//
-	// 		if (!response.ok) {
-	// 			throw new Error('Update failed');
-	// 		}
-	//
-	// 		const responseData = await response.json();
-	// 		console.log('Update successful. Server response:', responseData);
-	// 	} catch (error) {
-	// 		console.error('Error updating User Port', error);
-	// 	}
-	// };
-
 
 	return (
 			<div className="App">
@@ -191,9 +164,7 @@ function App() {
 					</div>
 					<div className="port_container">
 						<label>UDP Port:</label>
-						<input value={userPort}
-								// onChange={updateUserPort}
-						/>
+						<input value={userPort}/>
 					</div>
 					<div id="toggle">
 						<label htmlFor={"toggle-osc"}>Send
@@ -233,7 +204,6 @@ function App() {
 					</div>
 				</div>
 
-
 				<div className="webcam_container">
 					<Webcam
 							id="video"
@@ -245,16 +215,12 @@ function App() {
 					<canvas id="render" className="hidden canvas"/>
 				</div>
 
-				{/* TODO: Add containers based on the element's function */}
-
-
 				<button onClick={!isDetecting ? start : stop}>
 					{!isDetecting ? "Start" : "Stop"} detection
 				</button>
 				<div className="button">
 					<button onClick={!isDetecting ? start : stop}
 					        style={{backgroundColor: setBackground()}}>
-
 					</button>
 				</div>
 
