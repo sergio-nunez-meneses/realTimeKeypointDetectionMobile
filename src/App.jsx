@@ -2,7 +2,7 @@ import React, {useEffect, useState} from "react";
 import Webcam from "react-webcam";
 import Model from "./model/Model";
 import Osc from "./osc/Osc";
-import axios from "axios";
+import {ajax} from "./tool/functions";
 
 
 let video, canvas, modal, ctx, animation;
@@ -24,7 +24,8 @@ function App() {
 	}
 
 	useEffect(() => {
-		getIpClient();
+		ajax("get", "https://api.ipify.org?format=json")
+				.then(res => setIpAddress(res.ip));
 
 		video = document.getElementById("video");
 		video.addEventListener("loadeddata", () => {
@@ -116,15 +117,6 @@ function App() {
 		}, []);
 
 		return windowSize;
-	}
-
-	async function getIpClient() {
-		try {
-			const response = await axios.get("https://api.ipify.org?format=json");
-			setIpAddress(response.data.ip);
-		} catch (error) {
-			console.error(error);
-		}
 	}
 
 	const setCanvas = (canvas, video) => {
