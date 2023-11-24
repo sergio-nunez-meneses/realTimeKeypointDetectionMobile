@@ -49,7 +49,9 @@ function App() {
 
 		setIsDetecting(true);
 
-		handleModal();
+		if (!modal.classList.contains("hidden")) {
+			hideModal();
+		}
 		canvas.classList.remove("hidden");
 	};
 
@@ -84,10 +86,14 @@ function App() {
 			setModalExists(true);
 		}
 		else {
-			modal.classList.remove("flex")
-			modal.classList.add("hidden");
-			setModalExists(false);
+			hideModal();
 		}
+	}
+
+	const hideModal = () => {
+		modal.classList.remove("flex");
+		modal.classList.add("hidden");
+		setModalExists(false);
 	}
 
 	const isLandscape = size.height <= size.width;
