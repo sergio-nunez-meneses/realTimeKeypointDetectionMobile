@@ -10,6 +10,30 @@ let model;
 let osc;
 
 
+function useWindowSize() {
+	const [windowSize, setWindowSize] = useState({
+		width : undefined,
+		height: undefined,
+	});
+
+	useEffect(() => {
+		const handleResize = () => {
+			setWindowSize({
+				width : window.innerWidth,
+				height: window.innerHeight,
+			});
+		}
+
+		window.addEventListener("resize", handleResize);
+
+		handleResize();
+
+		return () => window.removeEventListener("resize", handleResize);
+	}, []);
+
+	return windowSize;
+}
+
 function App() {
 	const [modelName, setModelName]     = useState("face");
 	const [isDetecting, setIsDetecting] = useState(false);
@@ -17,7 +41,10 @@ function App() {
 	const [isOscOn, setIsOscOn]         = useState(false);
 	const [userPort, setUserPort]       = useState(8000);
 	const [ipAddress, setIpAddress]     = useState()
-	const size                          = useWindowSize();
+
+	const size        = useWindowSize();
+	const isLandscape = size.height <= size.width;
+	const ratio       = isLandscape ? size.width / size.height : size.height / size.width;
 
 	if (isOscOn && !osc) {
 		osc = new Osc();
@@ -94,35 +121,6 @@ function App() {
 		modal.classList.remove("flex");
 		modal.classList.add("hidden");
 		setModalExists(false);
-	}
-
-	const isLandscape = size.height <= size.width;
-	const ratio       = isLandscape ? size.width / size.height : size.height /
-			size.width;
-
-	// Hook
-	function useWindowSize() {
-		const [windowSize, setWindowSize] = useState({
-			width : undefined,
-			height: undefined,
-		});
-
-		useEffect(() => {
-			function handleResize() {
-				setWindowSize({
-					width : window.innerWidth,
-					height: window.innerHeight,
-				});
-			}
-
-			window.addEventListener("resize", handleResize);
-
-			handleResize();
-
-			return () => window.removeEventListener("resize", handleResize);
-		}, []);
-
-		return windowSize;
 	}
 
 	const setCanvas = (canvas, video) => {
