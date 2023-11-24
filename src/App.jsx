@@ -13,7 +13,7 @@ let osc;
 function App() {
 	const [isDetecting, setIsDetecting] = useState(false);
 	const [modelName, setModelName]     = useState("face");
-	const [showModal, setShowModal]     = useState(false);
+	const [modalExists, setModalExists] = useState(false);
 	const [userPort, setUserPort]       = useState(8000);
 	const [ipAddress, setIpAddress]     = useState()
 	const size                          = useWindowSize();
@@ -44,14 +44,11 @@ function App() {
 
 	const start = () => {
 		model.setModel(modelName);
-		modal.classList.remove("flex");
-		modal.classList.add("hidden");
-		setShowModal(false);
-
 		runDetection();
 
 		setIsDetecting(true);
 
+		handleModal();
 		canvas.classList.remove("hidden");
 	};
 
@@ -79,16 +76,16 @@ function App() {
 		setIsDetecting(false);
 	};
 
-	const modalShow = () => {
-		if (!showModal) {
-			setShowModal(true)
+	const handleModal = () => {
+		if (!modalExists) {
 			modal.classList.remove("hidden");
-			modal.classList.add("flex")
+			modal.classList.add("flex");
+			setModalExists(true);
 		}
 		else {
-			setShowModal(false);
 			modal.classList.remove("flex")
 			modal.classList.add("hidden");
+			setModalExists(false);
 		}
 	}
 
@@ -147,8 +144,8 @@ function App() {
 	return (
 			<div className="App">
 
-				<div id="burger-menu" onClick={modalShow}>
-					<span className={`burger ${showModal ? 'cross' : 'line'}`}></span>
+				<div id="burger-menu" onClick={handleModal}>
+					<span className={`burger ${modalExists ? 'cross' : 'line'}`}></span>
 				</div>
 
 				<div id="modal" className="hidden">
