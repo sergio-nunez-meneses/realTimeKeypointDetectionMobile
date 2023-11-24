@@ -120,7 +120,7 @@ function App() {
 
 	async function getIpClient() {
 		try {
-			const response = await axios.get('https://api.ipify.org?format=json');
+			const response = await axios.get("https://api.ipify.org?format=json");
 			setIpAddress(response.data.ip);
 		} catch (error) {
 			console.error(error);
@@ -139,7 +139,7 @@ function App() {
 			<div className="App">
 
 				<div id="burger-menu" onClick={handleModal}>
-					<span className={`burger ${modalExists ? 'cross' : 'line'}`}></span>
+					<span className={`burger ${modalExists ? "cross" : "line"}`}></span>
 				</div>
 
 				<div id="modal" className="hidden">
@@ -200,7 +200,7 @@ function App() {
 							id="video"
 							height={size.height}
 							width={size.width}
-							videoConstraints={{facingMode: 'user', aspectRatio: ratio}}
+							videoConstraints={{facingMode: "user", aspectRatio: ratio}}
 							audio={false}
 							ref={camera => window.camera = camera}/>
 					<canvas id="render" className="hidden canvas"/>
