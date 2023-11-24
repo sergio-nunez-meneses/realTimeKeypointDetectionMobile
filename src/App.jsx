@@ -89,14 +89,8 @@ function App() {
 		}
 	}
 
-	const setBackground = () => {
-		if (!isDetecting) {
-			return ("red");
-		}
-		return ("#23E95A");
-	};
-	const isLandscape   = size.height <= size.width;
-	const ratio         = isLandscape ? size.width / size.height : size.height /
+	const isLandscape = size.height <= size.width;
+	const ratio       = isLandscape ? size.width / size.height : size.height /
 			size.width;
 
 	// Hook
@@ -214,7 +208,7 @@ function App() {
 
 				<div className="button">
 					<button onClick={!isDetecting ? start : stop}
-					        style={{backgroundColor: setBackground()}}>
+					        style={{backgroundColor: !isDetecting ? "red" : "#23E95A"}}>
 					</button>
 				</div>
 
