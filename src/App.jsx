@@ -57,10 +57,9 @@ function App() {
 			modal  = document.getElementById("modal");
 			canvas = document.getElementById("render");
 			ctx    = canvas.getContext("2d");
+			model  = new Model(video, ctx);
 
 			setCanvasSize(canvas, video);
-
-			model = new Model(video, ctx);
 
 			window.addEventListener("resize", () => {
 				setCanvasSize(canvas, video);
@@ -90,7 +89,7 @@ function App() {
 		model.displayData(rawData);
 
 		animation = window.requestAnimationFrame(runDetection);
-	}
+	};
 
 	const stop = () => {
 		canvas.classList.add("hidden");
@@ -113,20 +112,20 @@ function App() {
 		else {
 			hideModal();
 		}
-	}
+	};
 
 	const hideModal = () => {
 		modal.classList.remove("flex");
 		modal.classList.add("hidden");
 		setModalExists(false);
-	}
+	};
 
 	const setCanvasSize = (canvas, video) => {
 		canvas.width      = video.width;
 		canvas.height     = video.height;
 		canvas.style.left = video.offsetLeft + "px";
 		canvas.style.top  = video.offsetTop + "px";
-	}
+	};
 
 
 	return (
