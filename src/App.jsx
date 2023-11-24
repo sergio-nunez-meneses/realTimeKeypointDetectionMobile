@@ -25,20 +25,15 @@ function App() {
 
 	useEffect(() => {
 		getIpClient();
+
 		video = document.getElementById("video");
 		video.addEventListener("loadeddata", () => {
-			modal             = document.getElementById("modal");
-			canvas            = document.getElementById("render");
-			canvas.width      = video.width;
-			canvas.height     = video.height;
-			canvas.style.left = video.offsetLeft + "px";
-			canvas.style.top  = video.offsetTop + "px";
+			modal  = document.getElementById("modal");
+			canvas = document.getElementById("render");
+			setCanvas(canvas, video);
 
 			window.addEventListener("resize", () => {
-				canvas.width      = video.width;
-				canvas.height     = video.height;
-				canvas.style.left = video.offsetLeft + "px";
-				canvas.style.top  = video.offsetTop + "px";
+				setCanvas(canvas, video);
 			})
 
 			ctx = canvas.getContext("2d");
@@ -139,6 +134,13 @@ function App() {
 		} catch (error) {
 			console.error(error);
 		}
+	}
+
+	const setCanvas = (canvas, video) => {
+		canvas.width      = video.width;
+		canvas.height     = video.height;
+		canvas.style.left = video.offsetLeft + "px";
+		canvas.style.top  = video.offsetTop + "px";
 	}
 
 
