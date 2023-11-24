@@ -56,15 +56,15 @@ function App() {
 		video.addEventListener("loadeddata", () => {
 			modal  = document.getElementById("modal");
 			canvas = document.getElementById("render");
-			setCanvas(canvas, video);
+			ctx    = canvas.getContext("2d");
 
-			window.addEventListener("resize", () => {
-				setCanvas(canvas, video);
-			})
-
-			ctx = canvas.getContext("2d");
+			setCanvasSize(canvas, video);
 
 			model = new Model(video, ctx);
+
+			window.addEventListener("resize", () => {
+				setCanvasSize(canvas, video);
+			})
 		});
 	}, []);
 
@@ -121,7 +121,7 @@ function App() {
 		setModalExists(false);
 	}
 
-	const setCanvas = (canvas, video) => {
+	const setCanvasSize = (canvas, video) => {
 		canvas.width      = video.width;
 		canvas.height     = video.height;
 		canvas.style.left = video.offsetLeft + "px";
