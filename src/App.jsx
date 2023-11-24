@@ -11,13 +11,13 @@ let osc;
 
 
 function App() {
-	const [isDetecting, setIsDetecting] = useState(false);
 	const [modelName, setModelName]     = useState("face");
+	const [isDetecting, setIsDetecting] = useState(false);
 	const [modalExists, setModalExists] = useState(false);
+	const [isOscOn, setIsOscOn]         = useState(false);
 	const [userPort, setUserPort]       = useState(8000);
 	const [ipAddress, setIpAddress]     = useState()
 	const size                          = useWindowSize();
-	const [isOscOn, setIsOscOn]         = useState(false);
 
 	if (isOscOn && !osc) {
 		osc = new Osc();
