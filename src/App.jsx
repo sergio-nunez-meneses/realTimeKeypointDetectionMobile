@@ -10,7 +10,7 @@ let model;
 let osc;
 
 
-function useWindowSize() {
+function setWebcamSize() {
 	const [windowSize, setWindowSize] = useState({
 		width : undefined,
 		height: undefined,
@@ -40,7 +40,7 @@ function App() {
 	const [userPort, setUserPort]       = useState(8000);
 	const [ipAddress, setIpAddress]     = useState()
 
-	const size        = useWindowSize();
+	const size        = setWebcamSize();
 	const isLandscape = size.height <= size.width;
 	const ratio       = isLandscape ? size.width / size.height : size.height / size.width;
 
